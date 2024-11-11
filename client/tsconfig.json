@@ -20,9 +20,17 @@
     "baseUrl": "src",
     "paths": {
       "@components/*": ["components/*"],
-      "@assets/*": ["assets/*"]
+      "@assets/*": ["assets/*"],
+      "@crdt/*": ["../../@crdt/*"]
     }
   },
-  "include": ["src/**/*", "*.ts", "*.tsx", "vite.config.ts"],
+  "include": [
+    "src/**/*",
+    "*.ts",
+    "*.tsx",
+    "vite.config.ts",
+    "../@crdt/**/*.ts",
+    "../@crdt/**/*.tsx"
+  ],
   "exclude": ["node_modules"]
 }

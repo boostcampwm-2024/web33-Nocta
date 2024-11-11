@@ -1,9 +1,9 @@
 ---
 name: Request Template
 about: "\U0001F3A4 불편사항 제보 템플릿"
-title: ''
-labels: ''
-assignees: ''
+title: ""
+labels: ""
+assignees: ""
 ---
 
 ## 🎤 불편사항 내용

@@ -1,9 +1,9 @@
 ---
 name: "\U0001F6A8 Bug Report Template"
 about: 버그 제보 템플릿
-title: ''
+title: ""
 labels: Bug
-assignees: ''
+assignees: ""
 ---
 
 ## 🚨 버그 내용

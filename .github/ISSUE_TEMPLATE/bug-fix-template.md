@@ -1,9 +1,9 @@
 ---
 name: Bug Fix Template
 about: 버그 픽스 템플릿
-title: ''
+title: ""
 labels: Bug
-assignees: ''
+assignees: ""
 ---
 
 ## 🚨 버그 내용

@@ -28,7 +28,8 @@
   },
   "include": [
     "src/**/*",
-    "test/**/*" // e2e 테스트 파일을 위해
+    "test/**/*", // e2e 테스트 파일을 위해
+    "../@crdt/*"
   ],
   "exclude": ["node_modules", "dist"]
 }

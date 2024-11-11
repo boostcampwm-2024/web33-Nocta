@@ -1,9 +1,9 @@
 ---
 name: Feature Template
 about: 기능 추가 템플릿
-title: ''
+title: ""
 labels: Feat
-assignees: ''
+assignees: ""
 ---
 
 ## ✏️ 기능

@@ -1,9 +1,9 @@
 ---
 name: Refactor Template
 about: 리팩토링 템플릿
-title: ''
+title: ""
 labels: Refactor
-assignees: ''
+assignees: ""
 ---
 
 ## 🛠️ 리팩토링 내용
