@@ -1,35 +1,38 @@
 {
+  "extend": "../tsconfig.base.json",
+  "references": [{ "path": "../lib" }],
   "compilerOptions": {
     // 기본 설정
-    "module": "commonjs",
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ESNext",
+    "target": "ES2022",
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
-
     "strict": false,
     "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,
+    "paths": {
+      "@Nocta/crdt": ["../lib/dist"],
+      "@Nocta/crdt/*": ["../lib/dist/*"]
+    },
 
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-
-    "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
   "include": [
     "src/**/*",
-    "test/**/*", // e2e 테스트 파일을 위해
-    "../@crdt/*"
+    "test/**/*" // e2e 테스트 파일을 위해
   ],
   "exclude": ["node_modules", "dist"]
 }

@@ -1,19 +1,11 @@
 import { LinkedList } from "./LinkedList";
 import { NodeId, Node } from "./Node";
-
-interface RemoteInsertOperation {
-  node: Node;
-}
-
-interface RemoteDeleteOperation {
-  targetId: NodeId | null;
-  clock: number;
-}
+import { RemoteInsertOperation, RemoteDeleteOperation } from "./interfaces/Crdt";
 
 export class CRDT {
-  private clock: number;
-  private client: number;
-  private textLinkedList: LinkedList;
+  clock: number;
+  client: number;
+  textLinkedList: LinkedList;
 
   constructor(client: number) {
     this.clock = 0; // 이 CRDT의 논리적 시간 설정

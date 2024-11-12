@@ -3,22 +3,32 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type": "module",
+  "type": "commonjs",
+  "private": true,
   "scripts": {
     "test": "pnpm --filter server test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "lint": "eslint . --fix",
     "lint:client": "eslint \"client/src/**/*.{ts,tsx}\" --fix",
     "lint:server": "eslint \"server/src/**/*.{ts,tsx}\" --fix",
-    "dev": "pnpm -r --parallel dev"
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "build:lib": "cd lib && pnpm build",
+    "build:server": "cd server && pnpm build"
   },
   "keywords": [],
+  "workspaces": [
+    "client",
+    "server",
+    "lib"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@eslint/js": "^9.14.0",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
+    "@Nocta/crdt": "workspace:*",
     "eslint": "^8.57.1",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-react": "^7.33.2",

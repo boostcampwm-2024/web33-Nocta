@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { io, Socket } from "socket.io-client";
-import { CRDT } from "../../lib/Crdt";
-import { NodeId, Node } from "../../lib/Node";
+import { CRDT } from "@Nocta/crdt/Crdt";
+import { NodeId, Node } from "@Nocta/crdt/Node";
 
 interface RemoteInsertOperation {
   node: Node;

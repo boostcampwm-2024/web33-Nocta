@@ -13,7 +13,7 @@ import {
   RemoteInsertOperation,
   RemoteDeleteOperation,
   CursorPosition,
-} from "../lib/interfaces/crdt";
+} from "@Nocta/crdt/interfaces/Crdt";
 
 @WebSocketGateway({
   cors: {

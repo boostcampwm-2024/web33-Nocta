@@ -1,4 +1,27 @@
 {
-  "name": "@web33-Nocta/lib",
-  "version": "1.0.0"
+  "name": "@Nocta/crdt",
+  "version": "1.0.0",
+  "main": "dist/Crdt.js",
+  "types": "dist/Crdt.d.ts",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/Crdt.d.ts",
+      "default": "./dist/Crdt.js"
+    },
+    "./Node": {
+      "types": "./dist/Node.d.ts",
+      "default": "./dist/Node.js"
+    },
+    "./LinkedList": {
+      "types": "./dist/LinkedList.d.ts",
+      "default": "./dist/LinkedList.js"
+    },
+    "./interfaces/Crdt": {
+      "types": "./dist/interfaces/Crdt.d.ts",
+      "default": "./dist/interfaces/Crdt.js"
+    }
+  }
 }

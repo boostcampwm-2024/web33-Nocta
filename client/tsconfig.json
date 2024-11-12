@@ -15,15 +15,15 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "composite": true,
-    "types": ["vite/client"],
-    "baseUrl": "src",
+    "baseUrl": ".",
     "paths": {
       "@components/*": ["components/*"],
       "@assets/*": ["assets/*"],
-      "@lib/*": ["../lib/*"]
+      "@Nocta/crdt": ["../lib/dist"],
+      "@Nocta/crdt/*": ["../lib/dist/*"]
     }
   },
-  "include": ["src/**/*", "*.ts", "*.tsx", "vite.config.ts", "../lib/**/*.ts", "../lib/**/*.tsx"],
-  "exclude": ["node_modules"]
+  "references": [{ "path": "../lib" }],
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }
