@@ -19,9 +19,9 @@
       "types": "./dist/LinkedList.d.ts",
       "default": "./dist/LinkedList.js"
     },
-    "./interfaces/Crdt": {
-      "types": "./dist/interfaces/Crdt.d.ts",
-      "default": "./dist/interfaces/Crdt.js"
+    "./Interfaces": {
+      "types": "./dist/Interfaces.d.ts",
+      "default": "./dist/Interfaces.js"
     }
   }
 }

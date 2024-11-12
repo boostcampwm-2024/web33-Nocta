@@ -1,5 +1,5 @@
 import { LinkedList } from "./LinkedList";
-import { RemoteInsertOperation, RemoteDeleteOperation } from "./interfaces/Crdt";
+import { RemoteInsertOperation, RemoteDeleteOperation } from "./Interfaces";
 export declare class CRDT {
     clock: number;
     client: number;

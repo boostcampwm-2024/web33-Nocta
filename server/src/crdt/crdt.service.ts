@@ -35,7 +35,6 @@ export class CrdtService implements OnModuleInit {
         } catch (e) {
           console.error("Invalid JSON in document content:", doc.content);
         }
-
         contentArray.forEach((char, index) => {
           this.crdt.localInsert(index, char);
         });
@@ -67,7 +66,7 @@ export class CrdtService implements OnModuleInit {
       { content, updatedAt: new Date() },
       { new: true, upsert: true },
     );
-
+    ("d");
     if (!doc) {
       throw new Error("문서가 저장되지 않았습니다.");
     }

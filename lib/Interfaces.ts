@@ -1,4 +1,4 @@
-import { NodeId, Node } from "../Node";
+import { NodeId, Node } from "./Node";
 
 export interface RemoteInsertOperation {
   node: Node;
