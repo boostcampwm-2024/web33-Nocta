@@ -21,16 +21,9 @@
     "paths": {
       "@components/*": ["components/*"],
       "@assets/*": ["assets/*"],
-      "@crdt/*": ["../../@crdt/*"]
+      "@lib/*": ["../lib/*"]
     }
   },
-  "include": [
-    "src/**/*",
-    "*.ts",
-    "*.tsx",
-    "vite.config.ts",
-    "../@crdt/**/*.ts",
-    "../@crdt/**/*.tsx"
-  ],
+  "include": ["src/**/*", "*.ts", "*.tsx", "vite.config.ts", "../lib/**/*.ts", "../lib/**/*.tsx"],
   "exclude": ["node_modules"]
 }

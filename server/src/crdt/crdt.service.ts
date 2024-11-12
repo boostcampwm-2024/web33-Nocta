@@ -1,9 +1,10 @@
+// src/crdt/crdt.service.ts
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Doc, DocumentDocument } from "../schemas/document.schema";
 import { Model } from "mongoose";
-import { CRDT } from "../../../@crdt/Crdt";
-import { NodeId, Node } from "../../../@crdt/Node";
+import { CRDT } from "../lib/Crdt";
+import { NodeId, Node } from "../lib/Node";
 
 interface RemoteInsertOperation {
   node: Node;

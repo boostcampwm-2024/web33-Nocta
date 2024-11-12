@@ -13,7 +13,7 @@ import {
   RemoteInsertOperation,
   RemoteDeleteOperation,
   CursorPosition,
-} from "../../../@crdt/interfaces/crdt";
+} from "../lib/interfaces/crdt";
 
 @WebSocketGateway({
   cors: {

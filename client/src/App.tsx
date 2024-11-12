@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { io, Socket } from "socket.io-client";
-import { CRDT } from "@crdt/Crdt";
-import { NodeId, Node } from "@crdt/Node";
+import { CRDT } from "../../lib/Crdt";
+import { NodeId, Node } from "../../lib/Node";
 
 interface RemoteInsertOperation {
   node: Node;
@@ -150,6 +150,7 @@ const App = () => {
     const newContent = contentRef.current.innerText || "";
     const oldContent = crdtRef.current.read();
     const diffIndex = findDifferenceIndex(oldContent, newContent);
+
     const trimmedNewContent = newContent.trim();
     console.log("newContent:", JSON.stringify(newContent));
     console.log("oldContent:", oldContent);
@@ -181,7 +182,7 @@ const App = () => {
       // 로컬 텍스트 업데이트
       setContent(crdtRef.current.read());
     } else {
-      // 변경이 없거나, 교체가 발생한 경우 (단일 교체를 처리하려면 추가 로직 필요)
+      // 변경이 없거나, 교체 발생한 경우 (단일 교체를 처리하려면 추가 로직 필요)
       console.log("변경 없음 또는 교체 발생.");
       // 추가 로직 구현 가능
     }
