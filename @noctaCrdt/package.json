@@ -5,7 +5,7 @@
   "module": "./dist/Crdt.js",
   "types": "dist/Crdt.d.ts",
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b && (if [ \"$OS\" != \"Windows_NT\" ]; then chown -R $USER:$USER dist; fi)"
   },
   "exports": {
     "./Crdt": {
