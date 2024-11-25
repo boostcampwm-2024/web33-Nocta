@@ -34,7 +34,7 @@ const handleGlobalError = (error: AxiosError<ApiError>) => {
     case 401:
       // 이미 access token. refresh token이 만료된 경우 여기로 넘어옴.
       useUserStore.getState().actions.removeUserInfo();
-      errorStore.setErrorModal(true, "유효하지 않은 사용자입니다. 다시 로그인해주세요.");
+      // errorStore.setErrorModal(true, "유효하지 않은 사용자입니다. 다시 로그인해주세요.");
       break;
 
     case 500:
