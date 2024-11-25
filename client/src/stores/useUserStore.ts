@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
 import { useShallow } from "zustand/shallow";
 
 interface UserStore {
@@ -15,44 +14,31 @@ interface UserStore {
   };
 }
 
-export const useUserStore = create<UserStore>()(
-  persist(
-    (set, get) => ({
-      id: null,
-      name: null,
-      accessToken: null,
-      actions: {
-        setUserInfo: (id: string, name: string, accessToken: string) =>
-          set(() => ({ id, name, accessToken })),
-        removeUserInfo: () => {
-          set(() => ({ id: null, name: null, accessToken: null }));
-          sessionStorage.removeItem("nocta-storage");
-        },
-        getUserInfo: () => {
-          const state = get();
-          return {
-            id: state.id,
-            name: state.name,
-            accessToken: state.accessToken,
-          };
-        },
-        updateAccessToken: (accessToken: string) => set(() => ({ accessToken })),
-        checkAuth: () => {
-          const state = get();
-          return !!(state.id && state.name && state.accessToken);
-        },
-      },
-    }),
-    {
-      name: "nocta-storage",
-      storage: createJSONStorage(() => sessionStorage),
-      partialize: (state) => ({
+export const useUserStore = create<UserStore>()((set, get) => ({
+  id: null,
+  name: null,
+  accessToken: null,
+  actions: {
+    setUserInfo: (id: string, name: string, accessToken: string) =>
+      set(() => ({ id, name, accessToken })),
+    removeUserInfo: () => {
+      set(() => ({ id: null, name: null, accessToken: null }));
+    },
+    getUserInfo: () => {
+      const state = get();
+      return {
         id: state.id,
         name: state.name,
-      }),
+        accessToken: state.accessToken,
+      };
     },
-  ),
-);
+    updateAccessToken: (accessToken: string) => set(() => ({ accessToken })),
+    checkAuth: () => {
+      const state = get();
+      return !!(state.id && state.name && state.accessToken);
+    },
+  },
+}));
 
 // store 값을 변경하는 부분. 주로 api 코드에서 사용
 export const useUserActions = () => useUserStore((state) => state.actions);

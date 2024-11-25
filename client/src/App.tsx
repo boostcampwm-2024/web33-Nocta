@@ -8,14 +8,11 @@ import { useSocketStore } from "./stores/useSocketStore";
 
 const App = () => {
   // TODO 라우터, react query 설정
-  const { id, name, accessToken } = useUserInfo();
   const { refetch: refreshToken } = useRefreshQuery();
   const { isErrorModalOpen, errorMessage } = useErrorStore();
 
   useEffect(() => {
-    if (id && name && !accessToken) {
-      refreshToken();
-    }
+    refreshToken();
   }, []);
 
   useEffect(() => {

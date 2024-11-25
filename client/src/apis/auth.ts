@@ -51,7 +51,7 @@ export const useLogoutMutation = (onSuccess: () => void) => {
 };
 
 export const useRefreshQuery = () => {
-  const { updateAccessToken } = useUserActions();
+  const { setUserInfo } = useUserActions();
 
   const fetcher = () => fetch.get("/auth/refresh");
 
@@ -60,11 +60,13 @@ export const useRefreshQuery = () => {
     queryFn: async () => {
       const response = await fetcher();
 
+      const { id, name } = response.data;
       const [, accessToken] = response.headers.authorization.split(" ");
-      updateAccessToken(accessToken);
+      setUserInfo(id, name, accessToken);
 
       return response.data;
     },
     enabled: false,
+    retry: false,
   });
 };
