@@ -74,62 +74,116 @@ export const textContainerStyle = cva({
       p: {
         textStyle: "display-medium16",
         fontWeight: "normal",
-        "&:empty::before": {
-          content: '"텍스트를 입력하세요..."',
-        },
       },
       h1: {
         textStyle: "display-medium24",
         fontWeight: "normal",
-        "&:empty::before": {
-          content: '"제목 1"',
-        },
       },
       h2: {
         textStyle: "display-medium20",
         fontWeight: "normal",
-        "&:empty::before": {
-          content: '"제목 2"',
-        },
       },
       h3: {
         textStyle: "display-medium16",
         fontWeight: "normal",
-        "&:empty::before": {
-          content: '"제목 3"',
-        },
       },
       ul: {
         textStyle: "display-medium16",
         listStyleType: "disc",
-        "&:empty::before": {
-          content: '"리스트를 입력하세요..."',
-        },
       },
       li: {},
       ol: {
         listStyleType: "decimal",
-        "&:empty::before": {
-          content: '"번호 리스트를 입력하세요..."',
-        },
       },
       blockquote: {
         borderLeft: "4px solid token(colors.gray.300)",
         paddingLeft: "spacing.md",
         color: "gray.500",
         fontStyle: "italic",
-        "&:empty::before": {
-          content: '"텍스트를 입력하세요..."',
-        },
       },
-      checkbox: {
+      checkbox: {},
+    },
+    isLast: {
+      true: {},
+      false: {},
+    },
+  },
+  defaultVariants: {
+    type: "p",
+    isLast: false,
+  },
+  compoundVariants: [
+    {
+      type: "p",
+      isLast: true,
+      css: {
         "&:empty::before": {
           content: '"텍스트를 입력하세요..."',
         },
       },
     },
-  },
-  defaultVariants: {
-    type: "p",
-  },
+    {
+      type: "h1",
+      isLast: true,
+      css: {
+        "&:empty::before": {
+          content: '"제목 1"',
+        },
+      },
+    },
+    {
+      type: "h2",
+      isLast: true,
+      css: {
+        "&:empty::before": {
+          content: '"제목 2"',
+        },
+      },
+    },
+    {
+      type: "h3",
+      isLast: true,
+      css: {
+        "&:empty::before": {
+          content: '"제목 3"',
+        },
+      },
+    },
+    {
+      type: "ul",
+      isLast: true,
+      css: {
+        "&:empty::before": {
+          content: '"리스트를 입력하세요..."',
+        },
+      },
+    },
+    {
+      type: "ol",
+      isLast: true,
+      css: {
+        "&:empty::before": {
+          content: '"번호 리스트를 입력하세요..."',
+        },
+      },
+    },
+    {
+      type: "blockquote",
+      isLast: true,
+      css: {
+        "&:empty::before": {
+          content: '"텍스트를 입력하세요..."',
+        },
+      },
+    },
+    {
+      type: "checkbox",
+      isLast: true,
+      css: {
+        "&:empty::before": {
+          content: '"텍스트를 입력하세요..."',
+        },
+      },
+    },
+  ],
 });
