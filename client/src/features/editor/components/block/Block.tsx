@@ -25,6 +25,7 @@ interface BlockProps {
   id: string;
   block: CRDTBlock;
   isActive: boolean;
+  isLast: boolean;
   onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onCompositionEnd: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onKeyDown: (
@@ -60,6 +61,7 @@ export const Block: React.FC<BlockProps> = memo(
     id,
     block,
     isActive,
+    isLast,
     onInput,
     onCompositionEnd,
     onKeyDown,
@@ -244,6 +246,7 @@ export const Block: React.FC<BlockProps> = memo(
             suppressContentEditableWarning
             className={textContainerStyle({
               type: block.type,
+              isLast,
             })}
           />
         </motion.div>
