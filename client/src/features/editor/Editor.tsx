@@ -504,12 +504,13 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
               .map((block) => `${block.id.client}-${block.id.clock}`)}
             strategy={verticalListSortingStrategy}
           >
-            {editorState.linkedList.spread().map((block) => (
+            {editorState.linkedList.spread().map((block, index, array) => (
               <Block
                 key={`${block.id.client}-${block.id.clock}`}
                 id={`${block.id.client}-${block.id.clock}`}
                 block={block}
                 isActive={block.id === editorCRDT.current.currentBlock?.id}
+                isLast={index === array.length - 1}
                 onInput={handleBlockInput}
                 onCompositionEnd={handleCompositionEnd}
                 onKeyDown={handleKeyDown}
