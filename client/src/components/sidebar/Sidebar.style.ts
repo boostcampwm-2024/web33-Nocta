@@ -13,20 +13,31 @@ export const sidebarContainer = cx(
 );
 export const navWrapper = css({
   display: "flex",
-  gap: "md",
   flexDirection: "column",
   width: "100%",
+  height: "calc(100% - 176px)",
   overflowX: "hidden",
   overflowY: "scroll",
 });
 
 export const plusIconBox = css({
   display: "flex",
-  justifyContent: "start",
-  marginBlock: "10px",
+  position: "absolute",
+  bottom: "0px",
+  gap: "md",
+  justifyContent: "space-between",
+  alignItems: "center",
+  width: "100%",
+  height: "60px",
   paddingInline: "md",
+  justifyItems: "center",
 });
-
+export const placeholderMessage = css({
+  padding: "xs",
+  color: "gray.500",
+  textAlign: "center",
+  fontSize: "md",
+});
 export const sidebarToggleButton = css({
   zIndex: 10,
   position: "absolute",

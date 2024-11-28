@@ -28,6 +28,8 @@
       "@constants/*": ["src/constants/*"],
       "@hooks/*": ["src/hooks/*"],
       "@utils/*": ["src/utils/*"],
+      "@apis/*": ["src/apis/*"],
+      "@stores/*": ["src/stores/*"],
       "@noctaCrdt": ["../@noctaCrdt/dist"],
       "@noctaCrdt/*": ["../@noctaCrdt/dist/*"]
     }

@@ -1,5 +1,6 @@
 services:
   frontend:
+    user: "1001"
     build:
       context: .
       dockerfile: ./client/Dockerfile
@@ -7,9 +8,11 @@ services:
       - ./client/dist:/app/client/dist
     environment:
       - NODE_ENV=${NODE_ENV}
+      - VITE_API_URL=${VITE_API_URL}
     command: pnpm --filter client run build
 
   backend:
+    user: "1001"
     build:
       context: .
       dockerfile: ./server/Dockerfile
@@ -18,8 +21,12 @@ services:
     environment:
       - MONGO_URI=${MONGO_URI}
       - NODE_ENV=${NODE_ENV}
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
 
   nginx:
+    user: "1001"
     build:
       context: .
       dockerfile: ./nginx/Dockerfile
@@ -28,7 +35,7 @@ services:
       - "443:443"
     volumes:
       - ./client/dist:/usr/share/nginx/html
-      - ./certbot/www:/var/www/certbot
+      - ~/certbot/www:/var/www/certbot
       - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - frontend

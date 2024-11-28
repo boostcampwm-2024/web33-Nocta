@@ -1,16 +1,19 @@
-import { iconButtonContainer, iconBox } from "./IconButton.style";
+import { PageIconType } from "@noctaCrdt/Interfaces";
+import { iconComponents, IconConfig } from "@src/constants/PageIconButton.config";
+import { iconButtonContainer } from "./IconButton.style";
 
 interface IconButtonProps {
-  icon: string;
+  icon: PageIconType | "plus";
   size: "sm" | "md";
   onClick?: () => void;
 }
 
 export const IconButton = ({ icon, size, onClick }: IconButtonProps) => {
-  // TODO 추후 svg 파일을 받아올 수 있도록 수정 (사이드바 - 페이지 추가 버튼)
+  const { icon: IconComponent, color: defaultColor }: IconConfig = iconComponents[icon];
+
   return (
     <button className={iconButtonContainer({ size })} onClick={onClick}>
-      <span className={iconBox({ size })}>{icon}</span>
+      <IconComponent color={defaultColor} size="24px" />
     </button>
   );
 };

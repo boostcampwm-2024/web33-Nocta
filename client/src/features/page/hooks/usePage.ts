@@ -1,10 +1,22 @@
 import { useEffect, useState } from "react";
 import { PAGE, SIDE_BAR } from "@constants/size";
 import { SPACING } from "@constants/spacing";
-import { useIsSidebarOpen } from "@src/stores/useSidebarStore";
 import { Position, Size } from "@src/types/page";
+import { useIsSidebarOpen } from "@stores/useSidebarStore";
 
 const PADDING = SPACING.MEDIUM * 2;
+export const DIRECTIONS = [
+  "top",
+  "bottom",
+  "left",
+  "right",
+  "topLeft",
+  "topRight",
+  "bottomLeft",
+  "bottomRight",
+] as const;
+
+type Direction = (typeof DIRECTIONS)[number];
 
 export const usePage = ({ x, y }: Position) => {
   const [position, setPosition] = useState<Position>({ x, y });
@@ -68,28 +80,117 @@ export const usePage = ({ x, y }: Position) => {
     document.addEventListener("pointerup", handleDragEnd);
   };
 
-  const pageResize = (e: React.MouseEvent) => {
+  const pageResize = (e: React.MouseEvent, direction: Direction) => {
     e.preventDefault();
     const startX = e.clientX;
     const startY = e.clientY;
     const startWidth = size.width;
     const startHeight = size.height;
+    const startPosition = { x: position.x, y: position.y };
 
     const resize = (e: MouseEvent) => {
       const deltaX = e.clientX - startX;
       const deltaY = e.clientY - startY;
 
-      const newWidth = Math.max(
-        PAGE.MIN_WIDTH,
-        Math.min(startWidth + deltaX, window.innerWidth - position.x - getSidebarWidth() - PADDING),
-      );
+      let newWidth = startWidth;
+      let newHeight = startHeight;
+      let newX = startPosition.x;
+      let newY = startPosition.y;
 
-      const newHeight = Math.max(
-        PAGE.MIN_HEIGHT,
-        Math.min(startHeight + deltaY, window.innerHeight - position.y - PADDING),
-      );
+      switch (direction) {
+        case "right": {
+          newWidth = Math.min(
+            window.innerWidth - startPosition.x - getSidebarWidth() - PADDING,
+            Math.max(PAGE.MIN_WIDTH, startWidth + deltaX),
+          );
+          break;
+        }
+
+        case "left": {
+          newWidth = Math.min(
+            startPosition.x + startWidth,
+            Math.max(PAGE.MIN_WIDTH, startWidth - deltaX),
+          );
+          newX = Math.max(0, startPosition.x + startWidth - newWidth);
+          break;
+        }
+
+        case "bottom": {
+          newHeight = Math.min(
+            window.innerHeight - startPosition.y - PADDING,
+            Math.max(PAGE.MIN_HEIGHT, startHeight + deltaY),
+          );
+          break;
+        }
+
+        case "top": {
+          newHeight = Math.min(
+            startPosition.y + startHeight,
+            Math.max(PAGE.MIN_HEIGHT, startHeight - deltaY),
+          );
+          newY = Math.max(0, startPosition.y + startHeight - newHeight);
+          break;
+        }
+
+        case "topLeft": {
+          newHeight = Math.min(
+            startPosition.y + startHeight,
+            Math.max(PAGE.MIN_HEIGHT, startHeight - deltaY),
+          );
+          newY = Math.max(0, startPosition.y + startHeight - newHeight);
+
+          newWidth = Math.min(
+            startPosition.x + startWidth,
+            Math.max(PAGE.MIN_WIDTH, startWidth - deltaX),
+          );
+          newX = Math.max(0, startPosition.x + startWidth - newWidth);
+          break;
+        }
+
+        case "topRight": {
+          newHeight = Math.min(
+            startPosition.y + startHeight,
+            Math.max(PAGE.MIN_HEIGHT, startHeight - deltaY),
+          );
+          newY = Math.max(0, startPosition.y + startHeight - newHeight);
+
+          newWidth = Math.min(
+            window.innerWidth - startPosition.x - getSidebarWidth() - PADDING,
+            Math.max(PAGE.MIN_WIDTH, startWidth + deltaX),
+          );
+          break;
+        }
+
+        case "bottomLeft": {
+          newHeight = Math.min(
+            window.innerHeight - startPosition.y - PADDING,
+            Math.max(PAGE.MIN_HEIGHT, startHeight + deltaY),
+          );
+
+          newWidth = Math.min(
+            startPosition.x + startWidth,
+            Math.max(PAGE.MIN_WIDTH, startWidth - deltaX),
+          );
+          newX = Math.max(0, startPosition.x + startWidth - newWidth);
+          break;
+        }
+
+        case "bottomRight": {
+          newHeight = Math.min(
+            window.innerHeight - startPosition.y - PADDING,
+            Math.max(PAGE.MIN_HEIGHT, startHeight + deltaY),
+          );
+
+          newWidth = Math.min(
+            window.innerWidth - startPosition.x - getSidebarWidth() - PADDING,
+            Math.max(PAGE.MIN_WIDTH, startWidth + deltaX),
+          );
+          break;
+        }
+      }
 
       setSize({ width: newWidth, height: newHeight });
+      setPosition({ x: newX, y: newY });
     };
 
     const stopResize = () => {

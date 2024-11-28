@@ -44,4 +44,7 @@ jobs:
       - name: Run Unit Tests
         run: pnpm test
         env:
+          NODE_ENV: development
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}

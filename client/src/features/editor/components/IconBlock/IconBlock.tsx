@@ -3,7 +3,7 @@ import { iconContainerStyle, iconStyle } from "./IconBlock.style";
 
 interface IconBlockProps {
   type: ElementType;
-  index?: number;
+  index: number | undefined;
 }
 
 export const IconBlock = ({ type, index = 1 }: IconBlockProps) => {

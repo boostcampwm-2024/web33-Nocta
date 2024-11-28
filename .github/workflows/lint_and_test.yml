@@ -38,7 +38,10 @@ jobs:
       - name: Run Unit Tests
         run: pnpm test
         env:
+          NODE_ENV: development
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
   test_building_docker_image:
     name: Test Building Docker Image
@@ -71,5 +74,7 @@ jobs:
           NODE_ENV: production
           MONGO_URI: ${{ secrets.MONGO_URI }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: |
           docker-compose build frontend backend

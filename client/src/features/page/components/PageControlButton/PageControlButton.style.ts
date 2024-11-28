@@ -13,6 +13,9 @@ export const pageControlContainer = css({
 
 export const pageControlButton = cva({
   base: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: "full",
     width: "20px",
     height: "20px",
@@ -30,6 +33,8 @@ export const pageControlButton = cva({
 export const iconBox = css({
   transform: "scale(0.8)",
   strokeWidth: "2.5px",
+  width: "14px",
+  height: "14px",
   color: "white/90",
   opacity: 0,
   transition: "all 0.1s ease",

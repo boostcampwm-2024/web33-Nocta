@@ -1,10 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { AuthService } from "./auth.service";
+import { AuthService } from "../auth.service";
 import { JwtService } from "@nestjs/jwt";
 import { getModelToken } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { User, UserDocument } from "./schemas/user.schema";
+import { User } from "../schemas/user.schema";
 import * as bcrypt from "bcrypt";
+import { Response as ExpressResponse } from "express";
 
 // Mock modules
 jest.mock("bcrypt", () => ({
@@ -18,7 +18,6 @@ jest.mock("nanoid", () => ({
 
 describe("AuthService", () => {
   let service: AuthService;
-  let userModel: Model<UserDocument>;
   let jwtService: JwtService;
 
   const mockUser = {
@@ -26,12 +25,13 @@ describe("AuthService", () => {
     email: "test@example.com",
     password: "hashedPassword",
     name: "Test User",
+    tokenVersion: 0,
   };
 
-  // Updated mockUserModel
   const mockUserModel = {
     findOne: jest.fn(),
     create: jest.fn(),
+    updateOne: jest.fn(),
   };
 
   const mockJwtService = {
@@ -54,10 +54,8 @@ describe("AuthService", () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    userModel = module.get<Model<UserDocument>>(getModelToken(User.name));
     jwtService = module.get<JwtService>(JwtService);
 
-    // Reset all mocks
     jest.clearAllMocks();
   });
 
@@ -140,15 +138,126 @@ describe("AuthService", () => {
       const user = {
         id: "mockNanoId123",
         email: "test@example.com",
+        name: "Test User",
+        tokenVersion: 0,
       };
 
-      const result = await service.login(user);
+      const mockResponse = {
+        cookie: jest.fn(),
+        header: jest.fn(),
+      };
+
+      const result = await service.login(user as User, mockResponse as unknown as ExpressResponse);
 
       expect(jwtService.sign).toHaveBeenCalledWith({
         sub: user.id,
         email: user.email,
+        tokenVersion: user.tokenVersion + 1,
       });
-      expect(result).toEqual({ accessToken: "test-token" });
+      expect(mockResponse.cookie).toHaveBeenCalledWith("refreshToken", expect.any(String), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: "/",
+      });
+      expect(result).toEqual({
+        id: user.id,
+        email: user.email,
+        name: "Test User",
+      });
+    });
+  });
+
+  describe("getProfile", () => {
+    it("should return user profile if user exists", async () => {
+      mockUserModel.findOne.mockResolvedValue(mockUser);
+
+      const result = await service.getProfile("mockNanoId123");
+
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({ id: "mockNanoId123" });
+      expect(result).toEqual(mockUser);
+    });
+
+    it("should return null if user does not exist", async () => {
+      mockUserModel.findOne.mockResolvedValue(null);
+
+      const result = await service.getProfile("nonexistentId");
+
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({ id: "nonexistentId" });
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("removeRefreshToken", () => {
+    it("should remove refresh token from user", async () => {
+      await service.removeRefreshToken(mockUser as User);
+
+      expect(mockUserModel.updateOne).toHaveBeenCalledWith(
+        { id: mockUser.id },
+        { refreshToken: null },
+      );
+    });
+  });
+
+  describe("clearCookie", () => {
+    it("should clear refresh token cookie", () => {
+      const res = {
+        clearCookie: jest.fn(),
+      } as unknown as ExpressResponse;
+
+      service.clearCookie(res);
+
+      expect(res.clearCookie).toHaveBeenCalledWith("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+      });
+    });
+  });
+
+  describe("refresh", () => {
+    it("should return new access token if refresh token is valid", async () => {
+      mockUserModel.findOne.mockResolvedValue(mockUser);
+
+      const mockResponse = {
+        header: jest.fn(),
+      };
+
+      const result = await service.refresh(
+        "valid-refresh-token",
+        mockResponse as unknown as ExpressResponse,
+      );
+
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({ refreshToken: "valid-refresh-token" });
+      expect(jwtService.sign).toHaveBeenCalledWith({
+        sub: mockUser.id,
+        email: mockUser.email,
+        tokenVersion: 1,
+      });
+      expect(mockResponse.header).toHaveBeenCalledWith("Authorization", `Bearer test-token`);
+      expect(result).toEqual({
+        id: mockUser.id,
+        email: mockUser.email,
+        name: mockUser.name,
+      });
+    });
+
+    it("should return null if refresh token is invalid", async () => {
+      mockUserModel.findOne.mockResolvedValue(null);
+
+      const mockResponse = {
+        header: jest.fn(),
+      };
+
+      const result = await service.refresh(
+        "invalid-refresh-token",
+        mockResponse as unknown as ExpressResponse,
+      );
+
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({ refreshToken: "invalid-refresh-token" });
+      expect(result).toBeNull();
     });
   });
 });

@@ -2,7 +2,8 @@ import { css } from "@styled-system/css";
 
 export const pageItemContainer = css({
   display: "flex",
-  gap: "sm",
+  position: "relative",
+  gap: "lg",
   alignItems: "center",
   width: "100%",
   height: "56px",
@@ -10,9 +11,29 @@ export const pageItemContainer = css({
   "&:hover": {
     background: "white/50",
     cursor: "pointer",
+    "& .delete_box": {
+      visibility: "visible",
+      opacity: 1,
+    },
   },
 });
-
+export const deleteBox = css({
+  display: "flex",
+  visibility: "hidden",
+  position: "absolute",
+  right: "md",
+  justifyContent: "center",
+  alignItems: "center",
+  borderRadius: "xs",
+  width: "24px",
+  height: "24px",
+  opacity: 0,
+  transition: "all 0.2s ease-in-out",
+  cursor: "pointer",
+  "&:hover": {
+    background: "gray.100",
+  },
+});
 export const iconBox = css({
   display: "flex",
   flexShrink: 0,
@@ -22,7 +43,6 @@ export const iconBox = css({
   width: "44px",
   height: "44px",
   fontSize: "24px",
-  background: "white",
 });
 
 export const textBox = css({

@@ -1,12 +1,16 @@
+import { serializedEditorDataProps, PageIconType } from "@noctaCrdt/Interfaces";
+
 export interface Page {
-  id: number;
+  id: string;
   title: string;
-  icon: string;
+  icon: PageIconType;
   x: number;
   y: number;
   zIndex: number;
   isActive: boolean;
   isVisible: boolean;
+  isLoaded: boolean;
+  serializedEditorData: serializedEditorDataProps | null;
 }
 
 export interface Position {

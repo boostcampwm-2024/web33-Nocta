@@ -5,8 +5,11 @@ import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
 import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
-import { JwtStrategy } from "./jwt.strategy";
+import { JwtStrategy } from "./strategies/jwt.strategy";
+import { JwtRefreshTokenStrategy } from "./strategies/jwt-refresh-token.strategy";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { JwtRefreshTokenAuthGuard } from "./guards/jwt-refresh-token-auth.guard";
 
 @Module({
   imports: [
@@ -23,7 +26,13 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
     }),
   ],
   exports: [AuthService, JwtModule],
-  providers: [AuthService, JwtStrategy],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    JwtRefreshTokenStrategy,
+    JwtAuthGuard,
+    JwtRefreshTokenAuthGuard,
+  ],
   controllers: [AuthController],
 })
 export class AuthModule {}

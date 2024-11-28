@@ -4,7 +4,6 @@
 
 
 <div align="center">
-  <a href="http://223.130.159.220/">배포사이트</a>
   <br>
   <br>
   <a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fboostcampwm-2024%2Fweb33-Nocta&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false"/></a>
@@ -12,7 +11,7 @@
 </div>
 
 <p align="center">
-  <a href="http://223.130.159.220" title="🌌 밤하늘의 별빛처럼, 자유로운 인터랙션 실시간 에디터"><strong>배포 사이트</strong></a>
+  <a href="https://nocta.site" title="🌌 밤하늘의 별빛처럼, 자유로운 인터랙션 실시간 에디터"><strong>배포 사이트</strong></a>
 </p>
 
 

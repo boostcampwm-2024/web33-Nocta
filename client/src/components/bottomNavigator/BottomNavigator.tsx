@@ -6,7 +6,7 @@ import { bottomNavigatorContainer } from "./BottomNavigator.style";
 
 interface BottomNavigatorProps {
   pages: Page[];
-  handlePageSelect: ({ pageId, isSidebar }: { pageId: number; isSidebar?: boolean }) => void;
+  handlePageSelect: ({ pageId, isSidebar }: { pageId: string; isSidebar?: boolean }) => void;
 }
 
 export const BottomNavigator = ({ pages, handlePageSelect }: BottomNavigatorProps) => {

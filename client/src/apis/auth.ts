@@ -1,35 +1,70 @@
-import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useUserActions } from "@stores/useUserStore";
+import { unAuthorizationFetch, fetch } from "./axios";
 
-export const useSignupMutation = () => {
-  const fetcher = ({
-    name,
-    email,
-    password,
-  }: {
-    name: string;
-    email: string;
-    password: string;
-  }) => {
-    return axios.post("/auth/register", { name, email, password });
-  };
+const authKey = {
+  all: ["auth"] as const,
+  refresh: () => [...authKey.all, "refresh"] as const,
+};
+
+export const useSignupMutation = (onSuccess: () => void) => {
+  const fetcher = ({ name, email, password }: { name: string; email: string; password: string }) =>
+    unAuthorizationFetch.post("/auth/register", { name, email, password });
 
   return useMutation({
     mutationFn: fetcher,
+    onSuccess: () => {
+      onSuccess();
+    },
   });
 };
 
-export const useLoginMutation = () => {
-  const fetcher = ({ email, password }: { email: string; password: string }) => {
-    return axios.post("/auth/login", { email, password });
-  };
+export const useLoginMutation = (onSuccess: () => void) => {
+  const { setUserInfo } = useUserActions();
+
+  const fetcher = ({ email, password }: { email: string; password: string }) =>
+    unAuthorizationFetch.post("/auth/login", { email, password });
 
   return useMutation({
     mutationFn: fetcher,
-    // TODO 성공했을 경우 accessToken 저장 (zustand? localStorage? cookie?)
-    // accessToken: cookie (쿠기 다 때려넣기...) / localStorage / zustand (번거로움..귀찮음.. 안해봤음..)
-    // refreshToken: cookie,
-    // onSuccess: (data) => {
-    // },
+    onSuccess: (response) => {
+      const { id, name } = response.data;
+      const [, accessToken] = response.headers.authorization.split(" ");
+      setUserInfo(id, name, accessToken);
+      onSuccess();
+    },
+  });
+};
+
+export const useLogoutMutation = (onSuccess: () => void) => {
+  const { removeUserInfo } = useUserActions();
+
+  const fetcher = () => fetch.post("/auth/logout");
+
+  return useMutation({
+    mutationFn: fetcher,
+    onSuccess: () => {
+      removeUserInfo();
+      onSuccess();
+    },
+  });
+};
+
+export const useRefreshQuery = () => {
+  const { updateAccessToken } = useUserActions();
+
+  const fetcher = () => fetch.get("/auth/refresh");
+
+  return useQuery({
+    queryKey: authKey.refresh(),
+    queryFn: async () => {
+      const response = await fetcher();
+
+      const [, accessToken] = response.headers.authorization.split(" ");
+      updateAccessToken(accessToken);
+
+      return response.data;
+    },
+    enabled: false,
   });
 };

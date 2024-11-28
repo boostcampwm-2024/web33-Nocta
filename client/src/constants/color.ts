@@ -9,4 +9,7 @@ export const COLOR = {
   RED: "#F24150",
   YELLOW: "#FEA642",
   GREEN: "#1BBF44",
+  PURPLE: "#A142FE",
+  BROWN: "#8B4513",
+  BLUE: "#4285F4",
 };

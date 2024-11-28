@@ -1,22 +1,19 @@
-// MenuBlock.style.ts
 import { css } from "@styled-system/css";
 
 export const menuBlockStyle = css({
   display: "flex",
   zIndex: 1,
-
-  position: "relative", // absolute에서 relative로 변경
+  position: "absolute",
+  top: 0,
+  left: 0,
   justifyContent: "center",
   alignItems: "center",
   width: "20px",
   height: "20px",
   marginLeft: "-20px",
+  opacity: 0,
   transition: "opacity 0.2s ease-in-out",
   cursor: "grab",
-  _groupHover: {
-    opacity: 1,
-  },
-
   _active: {
     cursor: "grabbing",
   },

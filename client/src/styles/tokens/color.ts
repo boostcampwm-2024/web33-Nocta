@@ -23,4 +23,13 @@ export const colors = {
   green: {
     value: COLOR.GREEN,
   },
+  purple: {
+    value: COLOR.PURPLE,
+  },
+  brown: {
+    value: COLOR.BROWN,
+  },
+  blue: {
+    value: COLOR.BLUE,
+  },
 };

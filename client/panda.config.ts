@@ -21,6 +21,9 @@ export default defineConfig({
         radii,
         shadows,
         spacing,
+        fonts: {
+          pretendard: { value: "Pretendard, sans-serif" },
+        },
       },
       recipes: {
         glassContainer: glassContainerRecipe,

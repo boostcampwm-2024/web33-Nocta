@@ -8,6 +8,9 @@ const baseBlockStyle = {
   width: "full",
   minHeight: "16px",
   backgroundColor: "transparent",
+  "&:hover .menu_block, .menu_block.option_modal_open": {
+    opacity: 1,
+  },
 };
 
 export const blockContainerStyle = cva({
@@ -36,6 +39,7 @@ export const contentWrapperStyle = cva({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
+    width: "100%",
   },
 });
 
@@ -51,14 +55,19 @@ const baseTextStyle = {
   padding: "spacing.sm",
   color: "gray.900",
   backgroundColor: "transparent",
-  display: "flex",
+  display: "inline",
   alignItems: "center",
+  letterSpacing: "1.5px",
 };
 
 export const textContainerStyle = cva({
   base: {
     ...baseTextStyle,
     position: "relative",
+    paddingLeft: "10px",
+    wordBreak: "break-word",
+    overflowWrap: "break-word",
+    whiteSpace: "pre-wrap",
     "&:empty::before": {
       color: "gray.300",
       pointerEvents: "none",
@@ -68,28 +77,28 @@ export const textContainerStyle = cva({
     type: {
       p: {
         textStyle: "display-medium16",
-        fontWeight: "bold",
-        "&:empty::before": {
+        fontWeight: "normal",
+        "&:empty:focus::before": {
           content: '"텍스트를 입력하세요..."',
         },
       },
       h1: {
         textStyle: "display-medium24",
-        fontWeight: "bold",
+        fontWeight: "normal",
         "&:empty::before": {
           content: '"제목 1"',
         },
       },
       h2: {
         textStyle: "display-medium20",
-        fontWeight: "bold",
+        fontWeight: "normal",
         "&:empty::before": {
           content: '"제목 2"',
         },
       },
       h3: {
         textStyle: "display-medium16",
-        fontWeight: "bold",
+        fontWeight: "normal",
         "&:empty::before": {
           content: '"제목 3"',
         },
@@ -110,7 +119,8 @@ export const textContainerStyle = cva({
       },
       blockquote: {
         borderLeft: "4px solid token(colors.gray.300)",
-        paddingLeft: "spacing.md",
+        borderRadius: "none",
+        paddingLeft: "8px",
         color: "gray.500",
         fontStyle: "italic",
         "&:empty::before": {
@@ -121,6 +131,10 @@ export const textContainerStyle = cva({
         "&:empty::before": {
           content: '"텍스트를 입력하세요..."',
         },
+      },
+      hr: {
+        borderTop: "2px solid token(colors.gray.300)",
+        height: "1px",
       },
     },
   },

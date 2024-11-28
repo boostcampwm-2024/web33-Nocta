@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { useLoginMutation, useSignupMutation } from "@apis/auth";
 import { useState } from "react";
 import Lock from "@assets/icons/lock.svg?react";
 import Mail from "@assets/icons/mail.svg?react";
 import User from "@assets/icons/user.svg?react";
+import { InputField } from "@components/inputField/InputField";
 import { Modal } from "@components/modal/modal";
-import { useLoginMutation, useSignupMutation } from "@src/apis/auth";
-import { InputField } from "@src/components/inputField/InputField";
 import { container, formContainer, title, toggleButton } from "./AuthModal.style";
 
 interface AuthModalProps {
@@ -21,8 +21,8 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     password: "",
   });
 
-  const { mutate: signUp } = useSignupMutation();
-  const { mutate: login } = useLoginMutation();
+  const { mutate: login } = useLoginMutation(onClose);
+  const { mutate: signUp } = useSignupMutation(() => login(formData));
 
   const toggleMode = () => {
     setMode(mode === "login" ? "register" : "login");
@@ -41,13 +41,11 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   };
 
   const handleSubmitButtonClick = () => {
-    // TODO API 연결
     if (mode === "register") {
       signUp(formData);
     } else {
       login(formData);
     }
-    // closeModal();
   };
 
   return (
@@ -58,7 +56,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       secondaryButtonLabel="취소"
       secondaryButtonOnClick={closeModal}
     >
-      <div className={container({ mode })}>
+      <div className={container}>
         <h1 className={title}>{mode === "login" ? "Login" : "Sign Up"}</h1>
         <div className={formContainer}>
           {mode === "register" && (

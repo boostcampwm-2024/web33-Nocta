@@ -1,9 +1,18 @@
-import { pageTitle } from "./PageTitle.style";
+import { PageIconType } from "@noctaCrdt/Interfaces";
+import { iconComponents } from "@src/constants/PageIconButton.config";
+import { pageTitleContainer, pageTitle } from "./PageTitle.style";
 
 interface PageTitleProps {
   title: string;
+  icon: PageIconType;
 }
 
-export const PageTitle = ({ title }: PageTitleProps) => {
-  return <p className={pageTitle}>{title || "Title"}</p>;
+export const PageTitle = ({ title, icon }: PageTitleProps) => {
+  const { icon: IconComponent, color } = iconComponents[icon];
+  return (
+    <div className={pageTitleContainer}>
+      <IconComponent color={color} size="24px" />
+      <p className={pageTitle}>{title || "Title"}</p>
+    </div>
+  );
 };

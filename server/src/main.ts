@@ -1,5 +1,7 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
+import { createSwaggerDocument } from "./swagger/swagger.config";
+import cookieParser from "cookie-parser";
 
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule);
@@ -10,22 +12,20 @@ const bootstrap = async () => {
 
   app.enableCors({
     origin: (origin, callback) => {
-      if (isDevelopment) {
-        // 개발 환경: 모든 Origin 허용
+      if (isDevelopment || !origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        // 배포 환경: 특정 Origin만 허용
-        if (!origin || allowedOrigins.includes(origin)) {
-          callback(null, true);
-        } else {
-          callback(new Error("Not allowed by CORS"));
-        }
+        callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true, // 쿠키 전송을 위해 필수
+    exposedHeaders: ["Authorization"],
   });
 
+  app.use(cookieParser());
   app.setGlobalPrefix("api");
+
+  createSwaggerDocument(app);
 
   await app.listen(process.env.PORT ?? 3000);
 };

@@ -6,5 +6,7 @@
 .DS_Store
 .env
 
+tsconfig.tsbuildinfo
+
 # Jest globalConfig file
 ../globalConfig.json
