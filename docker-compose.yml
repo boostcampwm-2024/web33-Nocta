@@ -26,7 +26,6 @@ services:
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
 
   nginx:
-    user: "1001"
     build:
       context: .
       dockerfile: ./nginx/Dockerfile
