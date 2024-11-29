@@ -40,7 +40,6 @@ export const TypeOptionModal = ({
       case "Enter":
         e.preventDefault();
         onTypeSelect(options[selectedIndex].id);
-
         onClose();
         break;
 
@@ -60,35 +59,50 @@ export const TypeOptionModal = ({
   if (!isOpen) return null;
 
   return createPortal(
-    <motion.div
-      ref={modalRef}
-      tabIndex={0}
-      className={optionModal}
-      style={{
-        left: `${position.left}px`,
-        top: `${position.top}px`,
-        outline: "none",
-      }}
-      initial={modal.initial}
-      animate={modal.animate}
-      onKeyDown={handleKeyDown}
-    >
-      <div className={modalContainer}>
-        {options.map((option, index) => (
-          <button
-            key={option.id}
-            className={`${optionTypeButton} ${index === selectedIndex && "selected"}`}
-            onClick={() => {
-              onTypeSelect(option.id);
-              onClose();
-            }}
-            onMouseEnter={() => setSelectedIndex(index)}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-    </motion.div>,
+    <>
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "transparent",
+          zIndex: 999,
+        }}
+        onClick={onClose}
+      />
+      <motion.div
+        ref={modalRef}
+        tabIndex={0}
+        className={optionModal}
+        style={{
+          left: `${position.left}px`,
+          top: `${position.top}px`,
+          outline: "none",
+          zIndex: 1000,
+        }}
+        initial={modal.initial}
+        animate={modal.animate}
+        onKeyDown={handleKeyDown}
+      >
+        <div className={modalContainer}>
+          {options.map((option, index) => (
+            <button
+              key={option.id}
+              className={`${optionTypeButton} ${index === selectedIndex && "selected"}`}
+              onClick={() => {
+                onTypeSelect(option.id);
+                onClose();
+              }}
+              onMouseEnter={() => setSelectedIndex(index)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </motion.div>
+    </>,
     document.body,
   );
 };
