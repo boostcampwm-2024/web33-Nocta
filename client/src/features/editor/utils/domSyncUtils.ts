@@ -139,7 +139,16 @@ const setsEqual = (a: Set<string>, b: Set<string>): boolean => {
 };
 
 const sanitizeText = (text: string): string => {
-  return text.replace(/<br>/g, "\u00A0");
+  return text.replace(/<br>/g, "\u00A0").replace(/[<>&"']/g, (match) => {
+    const escapeMap: Record<string, string> = {
+      "<": "&lt;",
+      ">": "&gt;",
+      "&": "&amp;",
+      '"': "&quot;",
+      "'": "&#x27;",
+    };
+    return escapeMap[match] || match;
+  });
 };
 
 // 배열 비교 헬퍼 함수
