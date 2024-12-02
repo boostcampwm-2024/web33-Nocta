@@ -28,6 +28,9 @@ export class AuthService {
       name,
     });
   }
+  async addWorkspace(userId: string, workspaceId: string): Promise<void> {
+    await this.userModel.updateOne({ id: userId }, { $addToSet: { workspaces: workspaceId } });
+  }
 
   async findById(id: string): Promise<User | null> {
     return this.userModel.findOne({ id });

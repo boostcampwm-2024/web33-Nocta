@@ -10,12 +10,14 @@ interface UseTextOptionSelectProps {
   editorCRDT: EditorCRDT;
   setEditorState: React.Dispatch<React.SetStateAction<EditorStateProps>>;
   pageId: string;
+  isLocalChange: React.MutableRefObject<boolean>;
 }
 
 export const useTextOptionSelect = ({
   editorCRDT,
   setEditorState,
   pageId,
+  isLocalChange,
 }: UseTextOptionSelectProps) => {
   const { sendCharUpdateOperation } = useSocketStore();
 
@@ -25,6 +27,7 @@ export const useTextOptionSelect = ({
       const block = editorCRDT.LinkedList.getNode(blockId) as Block;
       if (!block) return;
 
+      isLocalChange.current = true;
       // 선택된 범위의 모든 문자들의 현재 스타일 상태 확인
       const hasStyle = nodes.every((node) => {
         const char = block.crdt.LinkedList.getNode(node.id) as Char;
@@ -82,6 +85,7 @@ export const useTextOptionSelect = ({
       const block = editorCRDT.LinkedList.getNode(blockId) as Block;
       if (!block) return;
 
+      isLocalChange.current = true;
       nodes.forEach((node) => {
         const char = block.crdt.LinkedList.getNode(node.id) as Char;
         if (!char) return;
@@ -114,6 +118,7 @@ export const useTextOptionSelect = ({
       const block = editorCRDT.LinkedList.getNode(blockId) as Block;
       if (!block) return;
 
+      isLocalChange.current = true;
       nodes.forEach((node) => {
         const char = block.crdt.LinkedList.getNode(node.id) as Char;
         if (!char) return;

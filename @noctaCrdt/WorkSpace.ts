@@ -4,18 +4,21 @@ import { EditorCRDT } from "./Crdt";
 
 export class WorkSpace {
   id: string;
+  name: string;
   pageList: Page[];
   authUser: Map<string, string>;
 
-  constructor(id: string, pageList: Page[]) {
-    this.id = id;
-    this.pageList = pageList;
-    this.authUser = new Map();
+  constructor(id?: string, name?: string, pageList?: Page[], authUser?: Map<string, string>) {
+    this.id = id ? id : crypto.randomUUID();
+    this.name = name ? name : "Untitled";
+    this.pageList = pageList ? pageList : [];
+    this.authUser = authUser ? authUser : new Map();
   }
 
   serialize(): WorkSpaceSerializedProps {
     return {
       id: this.id,
+      name: this.name,
       pageList: this.pageList,
       authUser: this.authUser,
     };
@@ -23,6 +26,7 @@ export class WorkSpace {
 
   deserialize(data: WorkSpaceSerializedProps): void {
     this.id = data.id;
+    this.name = data.name;
     this.pageList = data.pageList.map((pageData) => {
       const page = new Page();
       page.deserialize(pageData);

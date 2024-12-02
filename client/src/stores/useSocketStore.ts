@@ -6,14 +6,18 @@ import {
   RemoteCharDeleteOperation,
   RemoteBlockUpdateOperation,
   RemoteBlockReorderOperation,
+  RemoteBlockCheckboxOperation,
   RemoteCharUpdateOperation,
   RemotePageDeleteOperation,
   RemotePageUpdateOperation,
   CursorPosition,
   WorkSpaceSerializedProps,
+  WorkspaceListItem,
 } from "@noctaCrdt/Interfaces";
 import { io, Socket } from "socket.io-client";
 import { create } from "zustand";
+import { useToastStore } from "./useToastStore";
+import { useWorkspaceStore } from "./useWorkspaceStore";
 
 class BatchProcessor {
   private batch: any[] = [];
@@ -51,11 +55,14 @@ class BatchProcessor {
 
 interface SocketStore {
   socket: Socket | null;
-  clientId: number | null;
+  clientId: number | null; // 숫자로 된 클라이언트Id
   workspace: WorkSpaceSerializedProps | null;
+  availableWorkspaces: WorkspaceListItem[];
   batchProcessor: BatchProcessor;
-  init: (accessToken: string | null) => void;
+  workspaceConnections: Record<string, number>; // 워크스페이스별 접속자 수
+  init: (userId: string | null, workspaceId: string | null) => void;
   cleanup: () => void;
+  switchWorkspace: (userId: string | null, workspaceId: string | null) => void; // 새로운 함수 추가
   fetchWorkspaceData: () => WorkSpaceSerializedProps | null;
   sendPageCreateOperation: (operation: RemotePageCreateOperation) => void;
   sendPageDeleteOperation: (operation: RemotePageDeleteOperation) => void;
@@ -72,6 +79,7 @@ interface SocketStore {
   subscribeToPageOperations: (handlers: PageOperationsHandlers) => (() => void) | undefined;
   setWorkspace: (workspace: WorkSpaceSerializedProps) => void;
   sendOperation: (operation: any) => void;
+  sendBlockCheckboxOperation: (operation: RemoteBlockCheckboxOperation) => void;
 }
 
 interface RemoteOperationHandlers {
@@ -84,6 +92,7 @@ interface RemoteOperationHandlers {
   onRemoteCharUpdate: (operation: RemoteCharUpdateOperation) => void;
   onRemoteCursor: (position: CursorPosition) => void;
   onBatchOperations: (batch: any[]) => void;
+  onRemoteBlockCheckbox: (operation: RemoteBlockCheckboxOperation) => void;
 }
 
 interface PageOperationsHandlers {
@@ -96,12 +105,14 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   socket: null,
   clientId: null,
   workspace: null,
+  availableWorkspaces: [],
+  workspaceConnections: {},
   batchProcessor: new BatchProcessor((batch) => {
     const { socket } = get();
     socket?.emit("batch/operations", batch);
   }),
 
-  init: (id: string | null) => {
+  init: (userId: string | null, workspaceId: string | null) => {
     const { socket: existingSocket } = get();
 
     if (existingSocket) {
@@ -118,7 +129,8 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       auth: {
-        userId: id,
+        userId,
+        workspaceId,
       },
       autoConnect: false,
     });
@@ -128,7 +140,26 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     });
 
     socket.on("workspace", (workspace: WorkSpaceSerializedProps) => {
-      set({ workspace });
+      const { setWorkspace } = get();
+      setWorkspace(workspace);
+    });
+
+    socket.on(
+      "workspace/user/left",
+      (data: { workspaceId: string; userName: string; message: string }) => {
+        useToastStore.getState().addToast(data.message);
+      },
+    );
+
+    socket.on(
+      "workspace/user/join",
+      (data: { workspaceId: string; userName: string; message: string }) => {
+        useToastStore.getState().addToast(data.message);
+      },
+    );
+
+    socket.on("workspace/connections", (connections: Record<string, number>) => {
+      set({ workspaceConnections: connections });
     });
 
     socket.on("connect", () => {
@@ -139,8 +170,26 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       console.log("Disconnected from server");
     });
 
+    socket.on("workspace/list", (workspaces: WorkspaceListItem[]) => {
+      set({ availableWorkspaces: workspaces });
+      const { availableWorkspaces } = get();
+      console.log(availableWorkspaces);
+      const { workspace } = get();
+      const currentWorkspace = availableWorkspaces.find((ws) => ws.id === workspace!.id);
+      if (currentWorkspace) {
+        useWorkspaceStore.getState().setCurrentRole(currentWorkspace.role);
+        useWorkspaceStore.getState().setCurrentWorkspaceName(currentWorkspace.name);
+        useWorkspaceStore.getState().setCurrentActiveUsers(currentWorkspace.activeUsers);
+        useWorkspaceStore.getState().setCurrentMemberCount(currentWorkspace.memberCount);
+      }
+    });
+
     socket.on("error", (error: Error) => {
       console.error("Socket error:", error);
+    });
+
+    socket.on("workspace/role", (data: { role: "owner" | "editor" }) => {
+      useWorkspaceStore.getState().setCurrentRole(data.role);
     });
 
     socket.connect();
@@ -151,13 +200,31 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     if (socket) {
       socket.removeAllListeners();
       socket.disconnect();
+      sessionStorage.removeItem("currentWorkspace"); // sessionStorage 삭제
       set({ socket: null, workspace: null, clientId: null });
     }
   },
 
+  switchWorkspace: (userId: string | null, workspaceId: string | null) => {
+    const { socket, workspace, init } = get();
+    // 기존 연결 정리
+    if (socket) {
+      if (workspace?.id) {
+        socket.emit("leave/workspace", { workspaceId: workspace.id, userId });
+      }
+      socket.disconnect();
+    }
+    sessionStorage.removeItem("currentWorkspace");
+    set({ workspace: null }); // 상태도 초기화
+    init(userId, workspaceId);
+  },
+
   fetchWorkspaceData: () => get().workspace,
 
-  setWorkspace: (workspace: WorkSpaceSerializedProps) => set({ workspace }),
+  setWorkspace: (workspace: WorkSpaceSerializedProps) => {
+    sessionStorage.setItem("currentWorkspace", JSON.stringify(workspace));
+    set({ workspace });
+  },
 
   sendPageUpdateOperation: (operation: RemotePageUpdateOperation) => {
     const { socket } = get();
@@ -175,45 +242,45 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   },
 
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => {
-    // const { socket } = get();
-    // socket?.emit("insert/block", operation);
-    const { sendOperation } = get();
-    sendOperation(operation);
+    const { socket } = get();
+    socket?.emit("insert/block", operation);
+    // const { sendOperation } = get();
+    // sendOperation(operation);
   },
 
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => {
-    // const { socket } = get();
-    // socket?.emit("insert/char", operation);
-    const { sendOperation } = get();
-    sendOperation(operation);
+    const { socket } = get();
+    socket?.emit("insert/char", operation);
+    // const { sendOperation } = get();
+    // sendOperation(operation);
   },
 
   sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => {
-    // const { socket } = get();
-    // socket?.emit("update/block", operation);
-    const { sendOperation } = get();
-    sendOperation(operation);
+    const { socket } = get();
+    socket?.emit("update/block", operation);
+    // const { sendOperation } = get();
+    // sendOperation(operation);
   },
 
   sendBlockDeleteOperation: (operation: RemoteBlockDeleteOperation) => {
-    // const { socket } = get();
-    // socket?.emit("delete/block", operation);
-    const { sendOperation } = get();
-    sendOperation(operation);
+    const { socket } = get();
+    socket?.emit("delete/block", operation);
+    // const { sendOperation } = get();
+    // sendOperation(operation);
   },
 
   sendCharDeleteOperation: (operation: RemoteCharDeleteOperation) => {
-    // const { socket } = get();
-    // socket?.emit("delete/char", operation);
-    const { sendOperation } = get();
-    sendOperation(operation);
+    const { socket } = get();
+    socket?.emit("delete/char", operation);
+    // const { sendOperation } = get();
+    // sendOperation(operation);
   },
 
   sendCharUpdateOperation: (operation: RemoteCharUpdateOperation) => {
-    // const { socket } = get();
-    // socket?.emit("update/char", operation);
-    const { sendOperation } = get();
-    sendOperation(operation);
+    const { socket } = get();
+    socket?.emit("update/char", operation);
+    // const { sendOperation } = get();
+    // sendOperation(operation);
   },
 
   sendCursorPosition: (position: CursorPosition) => {
@@ -226,6 +293,11 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     socket?.emit("reorder/block", operation);
     // const { sendOperation } = get();
     // sendOperation(operation);
+  },
+
+  sendBlockCheckboxOperation: (operation: RemoteBlockCheckboxOperation) => {
+    const { socket } = get();
+    socket?.emit("checkbox/block", operation);
   },
 
   subscribeToRemoteOperations: (handlers: RemoteOperationHandlers) => {
@@ -241,6 +313,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     socket.on("update/char", handlers.onRemoteCharUpdate);
     socket.on("cursor", handlers.onRemoteCursor);
     socket.on("batch/operations", handlers.onBatchOperations);
+    socket.on("checkbox/block", handlers.onRemoteBlockCheckbox);
 
     return () => {
       socket.off("update/block", handlers.onRemoteBlockUpdate);
@@ -252,6 +325,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       socket.off("update/char", handlers.onRemoteCharUpdate);
       socket.off("cursor", handlers.onRemoteCursor);
       socket.off("batch/operations", handlers.onBatchOperations);
+      socket.off("checkbox/block", handlers.onRemoteBlockCheckbox);
     };
   },
 

@@ -41,12 +41,12 @@ export const colorOptionButton = css({
 const colorVariants: ColorVariants = {
   transparent: { backgroundColor: "#C1D7F4" },
   black: { backgroundColor: "#2B4158" },
-  red: { backgroundColor: "#F24150" },
-  green: { backgroundColor: "#1BBF44" },
-  blue: { backgroundColor: "#4285F4" },
-  yellow: { backgroundColor: "#FEA642" },
-  purple: { backgroundColor: "#A142FE" },
-  brown: { backgroundColor: "#8B4513" },
+  red: { backgroundColor: "#E25D68" },
+  green: { backgroundColor: "#3BC05C" },
+  blue: { backgroundColor: "#6293E5" },
+  yellow: { backgroundColor: "#EEAF66" },
+  purple: { backgroundColor: "#9862CD" },
+  brown: { backgroundColor: "#985728" },
   white: { backgroundColor: "#EEEEEE" },
 };
 

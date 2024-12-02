@@ -25,6 +25,7 @@ export const plusIconBox = css({
   position: "absolute",
   bottom: "0px",
   gap: "md",
+  flexShrink: 1,
   justifyContent: "space-between",
   alignItems: "center",
   width: "100%",

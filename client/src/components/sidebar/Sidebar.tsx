@@ -25,6 +25,7 @@ export const Sidebar = ({
   handlePageAdd,
   handlePageOpen,
   handlePageUpdate,
+  sidebarOnBoardingProps,
 }: {
   pages: Page[];
   handlePageAdd: () => void;
@@ -34,6 +35,7 @@ export const Sidebar = ({
     updates: { title?: string; icon?: PageIconType },
     syncWithServer: boolean,
   ) => void;
+  sidebarOnBoardingProps?: Record<string, string>;
 }) => {
   const visiblePages = pages.filter((page) => page.isVisible && page.isLoaded);
   const isMaxVisiblePage = visiblePages.length > MAX_VISIBLE_PAGE;
@@ -41,7 +43,6 @@ export const Sidebar = ({
   const { toggleSidebar } = useSidebarActions();
   const { isOpen, openModal, closeModal } = useModal();
   const { sendPageDeleteOperation, clientId } = useSocketStore();
-
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [pageToDelete, setPageToDelete] = useState<Page | null>(null);
 
@@ -87,6 +88,7 @@ export const Sidebar = ({
       initial="open"
       animate={isSidebarOpen ? "open" : "closed"}
       variants={sidebarVariants}
+      {...sidebarOnBoardingProps}
     >
       <div className={sidebarToggleButton} onClick={toggleSidebar}>
         {isSidebarOpen ? "«" : "»"}

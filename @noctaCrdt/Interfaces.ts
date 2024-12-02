@@ -113,6 +113,13 @@ export interface RemoteBlockDeleteOperation {
   pageId: string;
 }
 
+export interface RemoteBlockCheckboxOperation {
+  type: "blockCheckbox";
+  blockId: BlockId;
+  isChecked: boolean;
+  pageId: string;
+}
+
 export interface RemoteCharDeleteOperation {
   type: "charDelete";
   targetId: CharId;
@@ -178,6 +185,7 @@ export interface RemotePageUpdateOperation {
 }
 export interface WorkSpaceSerializedProps {
   id: string;
+  name: string;
   pageList: Page[];
   authUser: Map<string, string>;
 }
@@ -189,4 +197,11 @@ export interface RemoteBlockReorderOperation {
   clock: number;
   client: number;
   pageId: string;
+}
+export interface WorkspaceListItem {
+  id: string;
+  name: string;
+  role: string;
+  memberCount: number;
+  activeUsers: number;
 }

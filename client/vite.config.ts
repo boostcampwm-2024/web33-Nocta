@@ -9,4 +9,5 @@ export default defineConfig({
   resolve: {
     alias: { "@noctaCrdt": path.resolve(__dirname, "../@noctaCrdt") },
   },
+  publicDir: "public",
 });

@@ -3,7 +3,7 @@ import { cva } from "@styled-system/css";
 export const iconButtonContainer = cva({
   base: {
     display: "flex",
-
+    flexShrink: 1,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: "xs",

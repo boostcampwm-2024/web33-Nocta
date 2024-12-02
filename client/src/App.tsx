@@ -8,16 +8,20 @@ import { useSocketStore } from "./stores/useSocketStore";
 const App = () => {
   // TODO 라우터, react query 설정
   const { isErrorModalOpen, errorMessage } = useErrorStore();
-  const { id } = useUserInfo();
+  const { userId } = useUserInfo();
+
   useEffect(() => {
     const socketStore = useSocketStore.getState();
-    socketStore.init(id);
+    const savedWorkspace = sessionStorage.getItem("currentWorkspace");
+    const workspaceId = savedWorkspace ? JSON.parse(savedWorkspace).id : null;
+    socketStore.init(userId, workspaceId);
+
     return () => {
       setTimeout(() => {
         socketStore.cleanup();
       }, 0);
     };
-  }, [id]);
+  }, [userId]);
 
   return (
     <>

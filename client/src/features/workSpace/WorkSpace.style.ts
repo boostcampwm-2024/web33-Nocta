@@ -8,6 +8,9 @@ export const content = css({
 export const workSpaceContainer = cva({
   base: {
     display: "flex",
+    width: "100vw",
+    height: "100vh",
+    overflow: "hidden",
     transition: "opacity 0.3s ease-in-out",
   },
   variants: {

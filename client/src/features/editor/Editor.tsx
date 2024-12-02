@@ -6,7 +6,7 @@ import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { serializedEditorDataProps } from "node_modules/@noctaCrdt/Interfaces.ts";
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore.ts";
-import { setCaretPosition } from "@src/utils/caretUtils.ts";
+import { setCaretPosition, getAbsoluteCaretPosition } from "@src/utils/caretUtils.ts";
 import {
   editorContainer,
   editorTitleContainer,
@@ -42,6 +42,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     sendBlockInsertOperation,
     sendBlockDeleteOperation,
     sendBlockUpdateOperation,
+    sendBlockCheckboxOperation,
   } = useSocketStore();
   const { clientId } = useSocketStore();
   const [displayTitle, setDisplayTitle] = useState(pageTitle);
@@ -67,6 +68,9 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
   }, [serializedEditorData, clientId]);
 
   const editorCRDT = useRef<EditorCRDT>(editorCRDTInstance);
+  const isLocalChange = useRef(false);
+  const isSameLocalChange = useRef(false);
+  const composingCaret = useRef<number | null>(null);
 
   // editorState도 editorCRDT가 변경될 때마다 업데이트
   const [editorState, setEditorState] = useState<EditorStateProps>({
@@ -83,14 +87,16 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     handleRemoteBlockReorder,
     handleRemoteCharUpdate,
     handleRemoteCursor,
+    handleRemoteBlockCheckbox,
     addNewBlock,
-  } = useEditorOperation({ editorCRDT, pageId, setEditorState });
+  } = useEditorOperation({ editorCRDT, pageId, setEditorState, isSameLocalChange });
 
   const { sensors, handleDragEnd, handleDragStart } = useBlockDragAndDrop({
     editorCRDT: editorCRDT.current,
     editorState,
     setEditorState,
     pageId,
+    isLocalChange,
   });
 
   const { handleTypeSelect, handleAnimationSelect, handleCopySelect, handleDeleteSelect } =
@@ -117,19 +123,23 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     sendCharInsertOperation,
   });
 
-  const { handleBlockClick, handleBlockInput, handleKeyDown } = useBlockOperation({
-    editorCRDT: editorCRDT.current,
-    setEditorState,
-    pageId,
-    onKeyDown,
-    handleHrInput,
-  });
+  const { handleBlockClick, handleBlockInput, handleKeyDown, handleCheckboxToggle } =
+    useBlockOperation({
+      editorCRDT: editorCRDT.current,
+      setEditorState,
+      pageId,
+      onKeyDown,
+      handleHrInput,
+      isLocalChange,
+      sendBlockCheckboxOperation,
+    });
 
   const { onTextStyleUpdate, onTextColorUpdate, onTextBackgroundColorUpdate } = useTextOptionSelect(
     {
       editorCRDT: editorCRDT.current,
       setEditorState,
       pageId,
+      isLocalChange,
     },
   );
 
@@ -137,6 +147,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     editorCRDT: editorCRDT.current,
     setEditorState,
     pageId,
+    isLocalChange,
   });
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,34 +160,79 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     const newTitle = e.target.value;
     if (newTitle === "") {
       setDisplayTitle(""); // 입력이 비어있으면 로컬상태는 빈 문자열로
-      onTitleChange("새로운 페이지", true); // 서버에는 "새로운 페이지"로 저장
     } else {
       onTitleChange(newTitle, true);
     }
+  };
+
+  const handleCompositionStart = (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => {
+    const currentText = e.data;
+    composingCaret.current = getAbsoluteCaretPosition(e.currentTarget);
+    block.crdt.localInsert(composingCaret.current, currentText, block.id, pageId);
+  };
+
+  const handleCompositionUpdate = (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => {
+    const currentText = e.data;
+    if (composingCaret.current === null) return;
+    const currentCaret = composingCaret.current;
+    const currentCharNode = block.crdt.LinkedList.findByIndex(currentCaret);
+    if (!currentCharNode) return;
+    currentCharNode.value = currentText;
   };
 
   const handleCompositionEnd = useCallback(
     (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => {
       if (!editorCRDT) return;
       const event = e.nativeEvent as CompositionEvent;
-      const characters = [...event.data];
-      const selection = window.getSelection();
-      const caretPosition = selection?.focusOffset || 0;
-      const startPosition = caretPosition - characters.length;
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
 
-      characters.forEach((char, index) => {
-        const insertPosition = startPosition + index;
-        const charNode = block.crdt.localInsert(insertPosition, char, block.id, pageId);
+      if (composingCaret.current === null) return;
+      const currentCaret = composingCaret.current;
+      const currentCharNode = block.crdt.LinkedList.findByIndex(currentCaret);
+      if (!currentCharNode) return;
 
+      if (isMac) {
+        const [character, space] = event.data;
+        if (!character || composingCaret.current === null) return;
+        if (!currentCharNode) return;
+        currentCharNode.value = character;
         sendCharInsertOperation({
           type: "charInsert",
-          node: charNode.node,
+          node: currentCharNode,
           blockId: block.id,
           pageId,
         });
-      });
+        if (space) {
+          const spaceNode = block.crdt.localInsert(currentCaret + 1, space, block.id, pageId);
+          sendCharInsertOperation({
+            type: "charInsert",
+            node: spaceNode.node,
+            blockId: block.id,
+            pageId,
+          });
+        }
+        block.crdt.currentCaret = currentCaret + 2;
+      } else {
+        // Windows의 경우
+        const character = event.data;
+        if (!character) return;
 
-      block.crdt.currentCaret = caretPosition;
+        currentCharNode.value = character;
+        sendCharInsertOperation({
+          type: "charInsert",
+          node: currentCharNode,
+          blockId: block.id,
+          pageId,
+        });
+        sendCharInsertOperation(block.crdt.localInsert(currentCaret + 1, "", block.id, pageId));
+
+        block.crdt.currentCaret = currentCaret;
+      }
+
+      composingCaret.current = null;
+      if (isSameLocalChange.current) {
+        isSameLocalChange.current = false;
+      }
     },
     [editorCRDT, pageId, sendCharInsertOperation],
   );
@@ -190,12 +246,22 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     if (activeElement?.tagName.toLowerCase() === "input") {
       return; // input에 포커스가 있으면 캐럿 위치 변경하지 않음
     }
-    setCaretPosition({
-      blockId: editorCRDT.current.currentBlock.id,
-      linkedList: editorCRDT.current.LinkedList,
-      position: editorCRDT.current.currentBlock?.crdt.currentCaret,
-      pageId,
-    });
+    if (isLocalChange.current || isSameLocalChange.current) {
+      setCaretPosition({
+        blockId: editorCRDT.current.currentBlock.id,
+        linkedList: editorCRDT.current.LinkedList,
+        position: editorCRDT.current.currentBlock?.crdt.currentCaret,
+        pageId,
+      });
+      isLocalChange.current = false;
+      if (composingCaret.current !== null) {
+        isSameLocalChange.current = true;
+      } else {
+        isSameLocalChange.current = false;
+      }
+
+      return;
+    }
     // 서윤님 피드백 반영
   }, [editorCRDT.current.currentBlock?.id.serialize()]);
 
@@ -213,6 +279,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       onRemoteBlockReorder: handleRemoteBlockReorder,
       onRemoteCharUpdate: handleRemoteCharUpdate,
       onRemoteCursor: handleRemoteCursor,
+      onRemoteBlockCheckbox: handleRemoteBlockCheckbox,
       onBatchOperations: (batch) => {
         for (const item of batch) {
           switch (item.event) {
@@ -300,6 +367,8 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
                 block={block}
                 isActive={block.id === editorCRDT.current.currentBlock?.id}
                 onInput={handleBlockInput}
+                onCompositionStart={handleCompositionStart}
+                onCompositionUpdate={handleCompositionUpdate}
                 onCompositionEnd={handleCompositionEnd}
                 onKeyDown={handleKeyDown}
                 onCopy={handleCopy}
@@ -313,6 +382,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
                 onTextColorUpdate={onTextColorUpdate}
                 onTextBackgroundColorUpdate={onTextBackgroundColorUpdate}
                 dragBlockList={dragBlockList}
+                onCheckboxToggle={handleCheckboxToggle}
               />
             ))}
           </SortableContext>

@@ -11,7 +11,7 @@ export const PageTitle = ({ title, icon }: PageTitleProps) => {
   const { icon: IconComponent, color } = iconComponents[icon];
   return (
     <div className={pageTitleContainer}>
-      <IconComponent color={color} size="24px" />
+      <IconComponent color={color} size="24px" style={{ flexShrink: 0 }} />
       <p className={pageTitle}>{title || "Title"}</p>
     </div>
   );

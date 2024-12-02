@@ -212,17 +212,6 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
     }
   };
 
-  // 서버에서 처음 불러올때는 좌표를 모르기에, 초기화 과정 필요
-  const initPagePosition = () => {
-    setPages((prevPages) =>
-      prevPages.map((page, index) => ({
-        ...page,
-        x: PAGE_OFFSET * index,
-        y: PAGE_OFFSET * index,
-      })),
-    );
-  };
-
   const initPages = (list: CRDTPage[]) => {
     const pageList: Page[] = list.map(
       (crdtPage, index) =>
@@ -244,7 +233,6 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
 
   useEffect(() => {
     initPages([]);
-    initPagePosition();
   }, []);
 
   return {
@@ -256,6 +244,5 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
     updatePageData,
     updatePage,
     initPages,
-    initPagePosition,
   };
 };

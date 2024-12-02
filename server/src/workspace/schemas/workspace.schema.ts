@@ -205,14 +205,17 @@ export class Page {
 // Main Workspace Document Schema
 @Schema({ minimize: false })
 export class Workspace {
-  @Prop({ required: true })
+  @Prop({ required: true, default: () => crypto.randomUUID() })
   id: string;
+
+  @Prop({ type: String, default: "Untitled" })
+  name: string;
 
   @Prop({ type: [Page], default: [] })
   pageList: Page[];
 
-  @Prop({ type: Object, of: Object })
-  authUser: object;
+  @Prop({ type: Map, default: new Map() })
+  authUser: Map<string, string>;
 
   @Prop({ default: Date.now })
   updatedAt: Date;

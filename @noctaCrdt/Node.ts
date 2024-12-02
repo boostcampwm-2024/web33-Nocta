@@ -51,6 +51,7 @@ export class Block extends Node<BlockId> {
   icon: string;
   crdt: BlockCRDT;
   listIndex?: number;
+  isChecked?: boolean;
 
   constructor(value: string, id: BlockId) {
     super(value, id);
@@ -72,6 +73,7 @@ export class Block extends Node<BlockId> {
       icon: this.icon,
       crdt: this.crdt.serialize(),
       listIndex: this.listIndex ? this.listIndex : null,
+      isChecked: this.isChecked ? this.isChecked : null,
     };
   }
 
@@ -87,6 +89,7 @@ export class Block extends Node<BlockId> {
     block.icon = data.icon;
     block.crdt = BlockCRDT.deserialize(data.crdt);
     block.listIndex = data.listIndex ? data.listIndex : null;
+    block.isChecked = data.isChecked ? data.isChecked : null;
     return block;
   }
 }

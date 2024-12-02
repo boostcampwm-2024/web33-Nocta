@@ -40,13 +40,13 @@ export const colorOptionButton = css({
 
 const colorVariants: ColorVariants = {
   black: { color: "#2B4158" },
-  red: { color: "#F24150" },
-  green: { color: "#1BBF44" },
-  blue: { color: "#4285F4" },
-  yellow: { color: "#FEA642" },
-  purple: { color: "#A142FE" },
-  brown: { color: "#8B4513" },
-  white: { color: "#C1D7F4" },
+  red: { color: "#E25D68" },
+  green: { color: "#3BC05C" },
+  blue: { color: "#6293E5" },
+  yellow: { color: "#EEAF66" },
+  purple: { color: "#9862CD" },
+  brown: { color: "#985728" },
+  white: { color: "#EEEEEE" },
 };
 
 export const textColorIndicator = cva({

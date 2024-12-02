@@ -9,7 +9,7 @@ const textButton = cva({
   base: {
     borderRadius: "md",
     width: "50%",
-    height: "40px",
+    paddingY: "4px",
     cursor: "pointer",
   },
   variants: {

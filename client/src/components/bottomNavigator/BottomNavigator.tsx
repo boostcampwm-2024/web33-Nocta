@@ -7,11 +7,16 @@ import { bottomNavigatorContainer } from "./BottomNavigator.style";
 interface BottomNavigatorProps {
   pages: Page[];
   handlePageSelect: ({ pageId, isSidebar }: { pageId: string; isSidebar?: boolean }) => void;
+  BottomNavigatorOnBoardingProps?: Record<string, string>;
 }
 
-export const BottomNavigator = ({ pages, handlePageSelect }: BottomNavigatorProps) => {
+export const BottomNavigator = ({
+  pages,
+  handlePageSelect,
+  BottomNavigatorOnBoardingProps,
+}: BottomNavigatorProps) => {
   return (
-    <div className={bottomNavigatorContainer}>
+    <div className={bottomNavigatorContainer} {...BottomNavigatorOnBoardingProps}>
       {pages.map((page) => (
         <motion.div
           key={page.id}

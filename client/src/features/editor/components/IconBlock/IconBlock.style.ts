@@ -32,5 +32,15 @@ export const iconStyle = cva({
         backgroundColor: "white",
       },
     },
+    isChecked: {
+      true: {
+        color: "white",
+        backgroundColor: "#7272FF",
+      },
+      false: {
+        color: "gray.600",
+        backgroundColor: "white",
+      },
+    },
   },
 });

@@ -1,9 +1,10 @@
 import { useLogoutMutation } from "@apis/auth";
-import { useCheckLogin } from "@stores/useUserStore";
 import { TextButton } from "@components/button/textButton";
 import { Modal } from "@components/modal/modal";
 import { useModal } from "@components/modal/useModal";
+import { useCheckLogin } from "@stores/useUserStore";
 import { AuthModal } from "./AuthModal";
+import { container } from "./AuthButton.style";
 
 export const AuthButton = () => {
   const isLogin = useCheckLogin();
@@ -23,13 +24,13 @@ export const AuthButton = () => {
   const { mutate: logout } = useLogoutMutation(closeLogoutModal);
 
   return (
-    <>
+    <div className={container}>
       {isLogin ? (
-        <TextButton variant="secondary" onClick={openLogoutModal}>
+        <TextButton onClick={openLogoutModal} variant="secondary">
           로그아웃
         </TextButton>
       ) : (
-        <TextButton variant="secondary" onClick={openAuthModal}>
+        <TextButton onClick={openAuthModal} variant="secondary">
           로그인
         </TextButton>
       )}
@@ -44,6 +45,6 @@ export const AuthButton = () => {
       >
         <p>로그아웃 하시겠습니까?</p>
       </Modal>
-    </>
+    </div>
   );
 };

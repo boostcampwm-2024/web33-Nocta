@@ -12,7 +12,11 @@ export const IconButton = ({ icon, size, onClick }: IconButtonProps) => {
   const { icon: IconComponent, color: defaultColor }: IconConfig = iconComponents[icon];
 
   return (
-    <button className={iconButtonContainer({ size })} onClick={onClick}>
+    <button
+      className={iconButtonContainer({ size })}
+      data-onboarding="page-add-button"
+      onClick={onClick}
+    >
       <IconComponent color={defaultColor} size="24px" />
     </button>
   );

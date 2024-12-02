@@ -4,19 +4,25 @@ import MinusIcon from "@assets/icons/minus.svg?react";
 import { pageControlContainer, pageControlButton, iconBox } from "./PageControlButton.style";
 
 interface PageControlButtonProps {
+  isMaximized: boolean;
   onPageMinimize?: () => void;
   onPageMaximize?: () => void;
   onPageClose?: () => void;
 }
 
 export const PageControlButton = ({
+  isMaximized,
   onPageMinimize,
   onPageMaximize,
   onPageClose,
 }: PageControlButtonProps) => {
   return (
     <div className={pageControlContainer}>
-      <button className={pageControlButton({ color: "yellow" })} onClick={onPageMinimize}>
+      <button
+        className={pageControlButton({ color: "yellow" })}
+        onClick={onPageMinimize}
+        disabled={isMaximized}
+      >
         <MinusIcon className={iconBox} />
       </button>
       <button className={pageControlButton({ color: "green" })} onClick={onPageMaximize}>

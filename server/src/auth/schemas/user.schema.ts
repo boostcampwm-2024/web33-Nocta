@@ -23,6 +23,9 @@ export class User {
 
   @Prop()
   refreshToken: string;
+
+  @Prop({ type: [String], default: [] })
+  workspaces: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

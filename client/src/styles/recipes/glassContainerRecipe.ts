@@ -32,5 +32,27 @@ export const glassContainerRecipe = defineRecipe({
         border: "2px solid token(colors.white/40)",
       },
     },
+    background: {
+      none: {
+        background: "token(colors.white/95)",
+      },
+    },
+    boxShadow: {
+      all: {
+        boxShadow: "lg",
+      },
+      top: {
+        boxShadow: "0 -4px 6px -1px rgb(0 0 0 / 0.1), 0 -2px 4px -2px rgb(0 0 0 / 0.1)",
+      },
+      bottom: {
+        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+      },
+      left: {
+        boxShadow: "-4px 0 6px -1px rgb(0 0 0 / 0.1), -2px 0 4px -2px rgb(0 0 0 / 0.1)",
+      },
+      right: {
+        boxShadow: "4px 0 6px -1px rgb(0 0 0 / 0.1), 2px 0 4px -2px rgb(0 0 0 / 0.1)",
+      },
+    },
   },
 });

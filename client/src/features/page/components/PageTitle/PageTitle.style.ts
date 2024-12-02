@@ -5,11 +5,11 @@ export const pageTitleContainer = css({
   gap: "8px",
   flexDirection: "row",
   alignItems: "center",
+  overflow: "hidden",
 });
 
 export const pageTitle = css({
   textStyle: "display-medium24",
-  display: "flex",
   alignItems: "center",
   paddingTop: "3px",
   color: "gray.500",

@@ -32,7 +32,9 @@ export const Page = ({
   handleTitleChange,
   serializedEditorData,
 }: PageProps) => {
-  const { position, size, pageDrag, pageResize, pageMinimize, pageMaximize } = usePage({ x, y });
+  const { position, size, isMaximized, pageDrag, pageResize, pageMinimize, pageMaximize } = usePage(
+    { x, y },
+  );
   const [serializedEditorDatas, setSerializedEditorDatas] =
     useState<serializedEditorDataProps | null>(serializedEditorData);
 
@@ -74,6 +76,7 @@ export const Page = ({
         <div className={pageHeader} onPointerDown={pageDrag} onClick={handlePageClick}>
           <PageTitle title={title} icon={icon} />
           <PageControlButton
+            isMaximized={isMaximized}
             onPageClose={() => handlePageClose(id)}
             onPageMaximize={pageMaximize}
             onPageMinimize={pageMinimize}

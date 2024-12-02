@@ -1,5 +1,5 @@
 import { EditorCRDT } from "@noctaCrdt/Crdt";
-import { RemoteCharInsertOperation } from "@noctaCrdt/Interfaces";
+import { RemoteBlockCheckboxOperation, RemoteCharInsertOperation } from "@noctaCrdt/Interfaces";
 import { Block } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { useCallback } from "react";
@@ -14,6 +14,8 @@ interface UseBlockOperationProps {
   setEditorState: React.Dispatch<React.SetStateAction<EditorStateProps>>;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   handleHrInput: (block: Block, content: string) => boolean;
+  isLocalChange: React.MutableRefObject<boolean>;
+  sendBlockCheckboxOperation: (operation: RemoteBlockCheckboxOperation) => void;
 }
 
 export const useBlockOperation = ({
@@ -22,12 +24,15 @@ export const useBlockOperation = ({
   setEditorState,
   onKeyDown,
   handleHrInput,
+  isLocalChange,
+  sendBlockCheckboxOperation,
 }: UseBlockOperationProps) => {
   const { sendCharInsertOperation, sendCharDeleteOperation } = useSocketStore();
 
   const handleBlockClick = useCallback(
     (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => {
       if (editorCRDT) {
+        isLocalChange.current = true;
         const selection = window.getSelection();
         if (!selection) return;
 
@@ -52,6 +57,7 @@ export const useBlockOperation = ({
       if ((e.nativeEvent as InputEvent).isComposing) {
         return;
       }
+      isLocalChange.current = true;
 
       let operationNode;
       const element = e.currentTarget;
@@ -79,6 +85,7 @@ export const useBlockOperation = ({
               currentContent.length - 1,
             );
           }
+
           const addedChar = newContent[newContent.length - 1];
           charNode = block.crdt.localInsert(
             currentContent.length,
@@ -236,13 +243,14 @@ export const useBlockOperation = ({
 
       // 선택된 텍스트가 없으면 기본 키 핸들러 실행
       if (selection.isCollapsed) {
+        isLocalChange.current = true;
         onKeyDown(e);
         return;
       }
 
       const range = selection.getRangeAt(0);
       if (!blockRef.contains(range.commonAncestorContainer)) return;
-
+      isLocalChange.current = true;
       const startOffset = getTextOffset(blockRef, range.startContainer, range.startOffset);
       const endOffset = getTextOffset(blockRef, range.endContainer, range.endOffset);
 
@@ -251,9 +259,32 @@ export const useBlockOperation = ({
     [editorCRDT.LinkedList, sendCharDeleteOperation, pageId, onKeyDown],
   );
 
+  const handleCheckboxToggle = useCallback(
+    (blockId: BlockId, isChecked: boolean) => {
+      const operation = {
+        type: "blockCheckbox",
+        blockId,
+        pageId,
+        isChecked,
+      } as RemoteBlockCheckboxOperation;
+
+      sendBlockCheckboxOperation(operation);
+      const targetBlock = editorCRDT.LinkedList.nodeMap[JSON.stringify(blockId)];
+      if (targetBlock) {
+        targetBlock.isChecked = isChecked;
+        setEditorState({
+          clock: editorCRDT.clock,
+          linkedList: editorCRDT.LinkedList,
+        });
+      }
+    },
+    [editorCRDT, pageId, sendBlockCheckboxOperation],
+  );
+
   return {
     handleBlockClick,
     handleBlockInput,
     handleKeyDown,
+    handleCheckboxToggle,
   };
 };

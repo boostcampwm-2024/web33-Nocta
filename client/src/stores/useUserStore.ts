@@ -63,7 +63,7 @@ export const useUserInfo = () =>
   useUserStore(
     // state 바뀜에 따라 재렌더링 되도록
     useShallow((state) => ({
-      id: state.id,
+      userId: state.id,
       name: state.name,
       accessToken: state.accessToken,
     })),

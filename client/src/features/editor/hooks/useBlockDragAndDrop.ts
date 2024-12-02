@@ -1,18 +1,19 @@
 import { DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
 import { Block } from "@noctaCrdt/Node";
-import { useSocketStore } from "@src/stores/useSocketStore.ts";
-import { EditorStateProps } from "../Editor";
 import {
   RemoteBlockReorderOperation,
   RemoteBlockUpdateOperation,
 } from "node_modules/@noctaCrdt/Interfaces";
+import { useSocketStore } from "@src/stores/useSocketStore.ts";
+import { EditorStateProps } from "../Editor";
 
 interface UseBlockDragAndDropProps {
   editorCRDT: EditorCRDT;
   editorState: EditorStateProps;
   setEditorState: React.Dispatch<React.SetStateAction<EditorStateProps>>;
   pageId: string;
+  isLocalChange: React.MutableRefObject<boolean>;
 }
 
 export const useBlockDragAndDrop = ({
@@ -20,6 +21,7 @@ export const useBlockDragAndDrop = ({
   editorState,
   setEditorState,
   pageId,
+  isLocalChange,
 }: UseBlockDragAndDropProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -123,6 +125,7 @@ export const useBlockDragAndDrop = ({
     if (disableDrag) return;
 
     try {
+      isLocalChange.current = true;
       const nodes = editorState.linkedList.spread();
 
       // ID 문자열에서 client와 clock 추출
@@ -203,6 +206,7 @@ export const useBlockDragAndDrop = ({
       );
 
       if (parentIndex === -1) return [];
+      isLocalChange.current = true;
 
       const childBlockIds = [];
 

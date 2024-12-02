@@ -8,7 +8,11 @@ interface TextButtonProps {
 
 export const TextButton = ({ variant = "primary", children, onClick }: TextButtonProps) => {
   return (
-    <button className={textButtonContainer({ variant })} onClick={onClick}>
+    <button
+      className={textButtonContainer({ variant })}
+      onClick={onClick}
+      data-onboarding="login-button"
+    >
       {children}
     </button>
   );

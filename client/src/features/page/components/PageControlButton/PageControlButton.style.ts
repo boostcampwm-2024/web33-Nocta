@@ -20,6 +20,11 @@ export const pageControlButton = cva({
     width: "20px",
     height: "20px",
     cursor: "pointer",
+    "&:disabled": {
+      background: "gray.400",
+      opacity: 0.5,
+      cursor: "not-allowed",
+    },
   },
   variants: {
     color: {

@@ -4,7 +4,8 @@ import { AppService } from "./app.service";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { AuthModule } from "./auth/auth.module";
-import { CrdtModule } from "./crdt/crdt.module";
+import { WorkspaceModule } from "./workspace/workspace.module";
+import { WorkspaceController } from "./workspace/workspace.controller";
 
 @Module({
   imports: [
@@ -22,9 +23,9 @@ import { CrdtModule } from "./crdt/crdt.module";
       }),
     }),
     AuthModule,
-    CrdtModule,
+    WorkspaceModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, WorkspaceController],
   providers: [AppService],
 })
 export class AppModule {}

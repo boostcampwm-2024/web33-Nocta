@@ -5,6 +5,7 @@ import { useCallback } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { EditorStateProps } from "../Editor";
 import { getTextOffset } from "../utils/domSyncUtils";
+import { checkMarkdownPattern } from "../utils/markdownPatterns";
 
 interface ClipboardMetadata {
   value: string;
@@ -17,10 +18,21 @@ interface UseCopyAndPasteProps {
   editorCRDT: EditorCRDT;
   pageId: string;
   setEditorState: React.Dispatch<React.SetStateAction<EditorStateProps>>;
+  isLocalChange: React.MutableRefObject<boolean>;
 }
 
-export const useCopyAndPaste = ({ editorCRDT, pageId, setEditorState }: UseCopyAndPasteProps) => {
-  const { sendCharInsertOperation, sendCharDeleteOperation } = useSocketStore();
+export const useCopyAndPaste = ({
+  editorCRDT,
+  pageId,
+  setEditorState,
+  isLocalChange,
+}: UseCopyAndPasteProps) => {
+  const {
+    sendCharInsertOperation,
+    sendCharDeleteOperation,
+    sendBlockInsertOperation,
+    sendBlockUpdateOperation,
+  } = useSocketStore();
 
   const handleCopy = useCallback(
     (e: React.ClipboardEvent<HTMLDivElement>, blockRef: HTMLDivElement | null, block: Block) => {
@@ -67,10 +79,14 @@ export const useCopyAndPaste = ({ editorCRDT, pageId, setEditorState }: UseCopyA
       if (!blockRef) return;
 
       const selection = window.getSelection();
-
+      isLocalChange.current = true;
       if (selection && !selection.isCollapsed) {
         const range = selection.getRangeAt(0);
-        if (!blockRef.contains(range.commonAncestorContainer)) return;
+        if (!blockRef.contains(range.commonAncestorContainer)) {
+          // ?????
+          isLocalChange.current = false;
+          return;
+        }
 
         const startOffset = getTextOffset(blockRef, range.startContainer, range.startOffset);
         const endOffset = getTextOffset(blockRef, range.endContainer, range.endOffset);
@@ -113,25 +129,75 @@ export const useCopyAndPaste = ({ editorCRDT, pageId, setEditorState }: UseCopyA
         editorCRDT.currentBlock!.crdt.currentCaret = caretPosition + metadata.length;
       } else {
         const text = e.clipboardData.getData("text/plain");
-
         if (!block || text.length === 0) return;
 
         const caretPosition = block.crdt.currentCaret;
 
-        // 텍스트를 한 글자씩 순차적으로 삽입
-        text.split("").forEach((char, index) => {
-          const insertPosition = caretPosition + index;
-          const charNode = block.crdt.localInsert(insertPosition, char, block.id, pageId);
-          sendCharInsertOperation({
-            type: "charInsert",
-            node: charNode.node,
-            blockId: block.id,
-            pageId,
+        if (text.includes("\n")) {
+          let currentBlockIndex = editorCRDT.LinkedList.spread().findIndex(
+            (b) => b.id === block.id,
+          );
+          const textList = text.split("\n");
+          textList.forEach((line, index) => {
+            console.log(line);
+            if (index === 0) {
+              line.split("").forEach((char, index) => {
+                const charNode = block.crdt.localInsert(index, char, block.id, pageId);
+                sendCharInsertOperation({
+                  type: "charInsert",
+                  node: charNode.node,
+                  blockId: block.id,
+                  pageId,
+                });
+              });
+              const isMarkdownGrammer = checkMarkdownPattern(line);
+              if (isMarkdownGrammer && block.type === "p") {
+                block.type = isMarkdownGrammer.type;
+                sendBlockUpdateOperation(editorCRDT.localUpdate(block, pageId));
+                for (let i = 0; i < isMarkdownGrammer.length; i++) {
+                  sendCharDeleteOperation(block.crdt.localDelete(0, block.id, pageId));
+                }
+              }
+            } else {
+              const newBlock = editorCRDT.localInsert(currentBlockIndex, "");
+              sendBlockInsertOperation({
+                type: "blockInsert",
+                node: newBlock.node,
+                pageId,
+              });
+              line.split("").forEach((char, index) => {
+                sendCharInsertOperation(
+                  newBlock.node.crdt.localInsert(index, char, newBlock.node.id, pageId),
+                );
+              });
+              const isMarkdownGrammer = checkMarkdownPattern(line);
+              if (isMarkdownGrammer && newBlock.node.type === "p") {
+                newBlock.node.type = isMarkdownGrammer.type;
+                sendBlockUpdateOperation(editorCRDT.localUpdate(newBlock.node, pageId));
+                for (let i = 0; i < isMarkdownGrammer.length; i++) {
+                  sendCharDeleteOperation(
+                    newBlock.node.crdt.localDelete(0, newBlock.node.id, pageId),
+                  );
+                }
+              }
+            }
+            currentBlockIndex += 1;
           });
-        });
-
-        // 캐럿 위치 업데이트
-        editorCRDT.currentBlock!.crdt.currentCaret = caretPosition + text.length;
+        } else {
+          // 텍스트를 한 글자씩 순차적으로 삽입
+          text.split("").forEach((char, index) => {
+            const insertPosition = caretPosition + index;
+            const charNode = block.crdt.localInsert(insertPosition, char, block.id, pageId);
+            sendCharInsertOperation({
+              type: "charInsert",
+              node: charNode.node,
+              blockId: block.id,
+              pageId,
+            });
+          });
+          // 캐럿 위치 업데이트
+          editorCRDT.currentBlock!.crdt.currentCaret = caretPosition + text.length;
+        }
       }
 
       setEditorState({

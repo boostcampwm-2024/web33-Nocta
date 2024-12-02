@@ -5,9 +5,17 @@ interface IconBlockProps {
   type: ElementType;
   index: number | undefined;
   indent?: number;
+  isChecked?: boolean;
+  onCheckboxClick?: () => void;
 }
 
-export const IconBlock = ({ type, index = 1, indent = 0 }: IconBlockProps) => {
+export const IconBlock = ({
+  type,
+  index = 1,
+  indent = 0,
+  isChecked = false,
+  onCheckboxClick,
+}: IconBlockProps) => {
   const getIcon = () => {
     switch (type) {
       case "ul":
@@ -21,7 +29,17 @@ export const IconBlock = ({ type, index = 1, indent = 0 }: IconBlockProps) => {
       case "ol":
         return <span className={iconStyle({ type: "ol" })}>{`${index}.`}</span>;
       case "checkbox":
-        return <span className={iconStyle({ type: "checkbox" })} />;
+        return (
+          <span
+            onClick={onCheckboxClick}
+            className={iconStyle({
+              type: "checkbox",
+              isChecked,
+            })}
+          >
+            {isChecked ? "✓" : ""}
+          </span>
+        );
       default:
         return null;
     }

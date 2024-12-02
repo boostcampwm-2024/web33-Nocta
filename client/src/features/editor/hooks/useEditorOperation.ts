@@ -7,7 +7,10 @@ import {
   RemoteBlockReorderOperation,
   RemoteCharUpdateOperation,
   RemoteBlockInsertOperation,
+  RemoteBlockCheckboxOperation,
 } from "@noctaCrdt/Interfaces";
+import { TextLinkedList } from "@noctaCrdt/LinkedList";
+import { CharId } from "@noctaCrdt/NodeId";
 import { useCallback } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { EditorStateProps } from "../Editor";
@@ -16,12 +19,27 @@ interface UseEditorOperationProps {
   editorCRDT: React.MutableRefObject<EditorCRDT>;
   pageId: string;
   setEditorState: (state: EditorStateProps) => void;
+  isSameLocalChange: React.MutableRefObject<boolean>;
 }
+
+const getPositionById = (linkedList: TextLinkedList, nodeId: CharId | null): number => {
+  if (!nodeId) return 0;
+  let position = 0;
+  let current = linkedList.head;
+
+  while (current) {
+    if (current.equals(nodeId)) return position;
+    position += 1;
+    current = linkedList.getNode(current) ? linkedList.getNode(current)!.next : null;
+  }
+  return position;
+};
 
 export const useEditorOperation = ({
   editorCRDT,
   pageId,
   setEditorState,
+  isSameLocalChange,
 }: UseEditorOperationProps) => {
   const { sendBlockInsertOperation } = useSocketStore();
   const handleRemoteBlockInsert = useCallback(
@@ -59,11 +77,20 @@ export const useEditorOperation = ({
   );
 
   const handleRemoteCharInsert = useCallback(
+    // 원격으로 입력된 글자의 위치가 현재 캐럿의 위치보다 작을때만 캐럿을 1 증가시킨다.
     (operation: RemoteCharInsertOperation) => {
       if (operation.pageId !== pageId) return;
       const targetBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
       if (targetBlock) {
+        if (targetBlock === editorCRDT.current.currentBlock) {
+          isSameLocalChange.current = true;
+        }
+        const insertPosition = getPositionById(targetBlock.crdt.LinkedList, operation.node.prev);
+        const { currentCaret } = targetBlock.crdt;
         targetBlock.crdt.remoteInsert(operation);
+        if (editorCRDT.current.currentBlock === targetBlock && insertPosition < currentCaret) {
+          editorCRDT.current.currentBlock.crdt.currentCaret += 1;
+        }
         setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
@@ -78,7 +105,15 @@ export const useEditorOperation = ({
       if (operation.pageId !== pageId) return;
       const targetBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
       if (targetBlock) {
+        if (targetBlock === editorCRDT.current.currentBlock) {
+          isSameLocalChange.current = true;
+        }
+        const deletePosition = getPositionById(targetBlock.crdt.LinkedList, operation.targetId);
+        const { currentCaret } = targetBlock.crdt;
         targetBlock.crdt.remoteDelete(operation);
+        if (editorCRDT.current.currentBlock === targetBlock && deletePosition < currentCaret) {
+          editorCRDT.current.currentBlock.crdt.currentCaret -= 1;
+        }
         setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
@@ -113,6 +148,21 @@ export const useEditorOperation = ({
         clock: editorCRDT.current.clock,
         linkedList: editorCRDT.current.LinkedList,
       });
+    },
+    [pageId, editorCRDT],
+  );
+
+  const handleRemoteBlockCheckbox = useCallback(
+    (operation: RemoteBlockCheckboxOperation) => {
+      if (operation.pageId !== pageId) return;
+      const targetBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
+      if (targetBlock) {
+        targetBlock.isChecked = operation.isChecked;
+        setEditorState({
+          clock: editorCRDT.current.clock,
+          linkedList: editorCRDT.current.LinkedList,
+        });
+      }
     },
     [pageId, editorCRDT],
   );
@@ -156,6 +206,7 @@ export const useEditorOperation = ({
     handleRemoteBlockReorder,
     handleRemoteCharUpdate,
     handleRemoteCursor,
+    handleRemoteBlockCheckbox,
     addNewBlock,
   };
 };

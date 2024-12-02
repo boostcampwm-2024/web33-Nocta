@@ -32,6 +32,8 @@ interface BlockProps {
   dragBlockList: string[];
   isActive: boolean;
   onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
+  onCompositionStart: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
+  onCompositionUpdate: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onCompositionEnd: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onKeyDown: (
     e: React.KeyboardEvent<HTMLDivElement>,
@@ -64,6 +66,7 @@ interface BlockProps {
     blockId: BlockId,
     nodes: Array<Char>,
   ) => void;
+  onCheckboxToggle: (blockId: BlockId, isChecked: boolean) => void;
 }
 export const Block: React.FC<BlockProps> = memo(
   ({
@@ -72,6 +75,8 @@ export const Block: React.FC<BlockProps> = memo(
     dragBlockList,
     isActive,
     onInput,
+    onCompositionStart,
+    onCompositionUpdate,
     onCompositionEnd,
     onKeyDown,
     onCopy,
@@ -84,6 +89,7 @@ export const Block: React.FC<BlockProps> = memo(
     onTextStyleUpdate,
     onTextColorUpdate,
     onTextBackgroundColorUpdate,
+    onCheckboxToggle,
   }: BlockProps) => {
     const blockRef = useRef<HTMLDivElement>(null);
     const { isOpen, openModal, closeModal } = useModal();
@@ -151,6 +157,39 @@ export const Block: React.FC<BlockProps> = memo(
         setSlashModalOpen(true);
       } else {
         onInput(e, block);
+      }
+    };
+
+    const handleKeyDown = (
+      e: React.KeyboardEvent<HTMLDivElement>,
+      blockRef: HTMLDivElement | null,
+      block: CRDTBlock,
+    ) => {
+      switch (e.key) {
+        case e.metaKey && "b": {
+          e.preventDefault();
+          onTextStyleUpdate("bold", block.id, selectedNodes);
+          break;
+        }
+        case e.metaKey && "i": {
+          e.preventDefault();
+          onTextStyleUpdate("italic", block.id, selectedNodes);
+          break;
+        }
+        case e.metaKey && "u": {
+          e.preventDefault();
+          onTextStyleUpdate("underline", block.id, selectedNodes);
+          break;
+        }
+        case e.metaKey && "Shift" && "s": {
+          onTextStyleUpdate("strikethrough", block.id, selectedNodes);
+          e.preventDefault();
+          break;
+        }
+        default: {
+          onKeyDown(e, blockRef, block);
+          break;
+        }
       }
     };
 
@@ -230,6 +269,10 @@ export const Block: React.FC<BlockProps> = memo(
       }
     };
 
+    const handleCheckboxClick = () => {
+      onCheckboxToggle(block.id, !block.isChecked);
+    };
+
     const Indicator = () => (
       <div
         className={dropIndicatorStyle({
@@ -269,15 +312,24 @@ export const Block: React.FC<BlockProps> = memo(
               onCopySelect={handleCopySelect}
               onDeleteSelect={handleDeleteSelect}
             />
-            <IconBlock type={block.type} index={block.listIndex} indent={block.indent} />
+
+            <IconBlock
+              type={block.type}
+              index={block.listIndex}
+              indent={block.indent}
+              isChecked={block.isChecked}
+              onCheckboxClick={handleCheckboxClick}
+            />
             <div
               ref={blockRef}
-              onKeyDown={(e) => onKeyDown(e, blockRef.current, block)}
+              onKeyDown={(e) => handleKeyDown(e, blockRef.current, block)}
               onInput={handleInput}
               onClick={(e) => onClick(block.id, e)}
               onCopy={(e) => onCopy(e, blockRef.current, block)}
               onPaste={(e) => onPaste(e, blockRef.current, block)}
               onMouseUp={handleMouseUp}
+              onCompositionStart={(e) => onCompositionStart(e, block)}
+              onCompositionUpdate={(e) => onCompositionUpdate(e, block)}
               onCompositionEnd={(e) => onCompositionEnd(e, block)}
               contentEditable={block.type !== "hr"}
               spellCheck={false}
