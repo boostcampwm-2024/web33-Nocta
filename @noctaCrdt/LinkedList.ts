@@ -1,6 +1,6 @@
 import { Node, Char, Block } from "./Node";
 import { NodeId, BlockId, CharId } from "./NodeId";
-import { InsertOperation, ReorderNodesProps } from "./Interfaces";
+import { ReorderNodesProps } from "./Interfaces";
 
 export abstract class LinkedList<T extends Node<NodeId>> {
   head: T["id"] | null;
@@ -20,35 +20,34 @@ export abstract class LinkedList<T extends Node<NodeId>> {
     this.nodeMap[JSON.stringify(id)] = node;
   }
 
-  getNode(id: T["id"] | null): T | null {
-    if (!id) return null;
-    return this.nodeMap[JSON.stringify(id)] || null;
+  getNode(id: T["id"] | null): T {
+    if (!id) {
+      throw new Error(`Invalid node id: ${id}`);
+    }
+    const node = this.nodeMap[JSON.stringify(id)];
+    if (!node) {
+      throw new Error(`Node not found: ${JSON.stringify(id)}`);
+    }
+    return node;
   }
 
   deleteNode(id: T["id"]): void {
     const nodeToDelete = this.getNode(id);
-    if (!nodeToDelete) return;
 
     if (this.head && id.equals(this.head)) {
       this.head = nodeToDelete.next;
       if (nodeToDelete.next) {
         const nextNode = this.getNode(nodeToDelete.next);
-        if (nextNode) {
-          nextNode.prev = null;
-        }
+        nextNode.prev = null;
       }
     } else {
       if (nodeToDelete.prev) {
         const prevNode = this.getNode(nodeToDelete.prev);
-        if (prevNode) {
-          prevNode.next = nodeToDelete.next;
-          if (nodeToDelete.next) {
-            const nextNode = this.getNode(nodeToDelete.next);
-            if (nextNode) {
-              nextNode.prev = nodeToDelete.prev;
-            }
-          }
-        }
+        prevNode.next = nodeToDelete.next;
+      }
+      if (nodeToDelete.next) {
+        const nextNode = this.getNode(nodeToDelete.next);
+        nextNode.prev = nodeToDelete.prev;
       }
     }
 
@@ -67,97 +66,78 @@ export abstract class LinkedList<T extends Node<NodeId>> {
     let currentNodeId = this.head;
     let currentIndex = 0;
 
-    while (currentNodeId !== null && currentIndex < index) {
+    const visitedNodes = new Set<string>();
+
+    while (currentNodeId !== null && currentIndex <= index) {
+      if (visitedNodes.has(JSON.stringify(currentNodeId))) {
+        throw new Error("Circular reference detected.");
+      }
+      visitedNodes.add(JSON.stringify(currentNodeId));
+
       const currentNode = this.getNode(currentNodeId);
-      if (!currentNode) {
-        throw new Error(`Node not found at index ${currentIndex}`);
+      if (currentIndex === index) {
+        return currentNode;
       }
       currentNodeId = currentNode.next;
       currentIndex += 1;
     }
 
-    if (currentNodeId === null) {
-      throw new Error(`LinkedList is empty at index ${index}`);
-    }
-
-    const node = this.getNode(currentNodeId);
-    if (!node) {
-      throw new Error(`Node not found at index ${index}`);
-    }
-
-    return node;
+    throw new Error(`Index out of bounds: ${index}`);
   }
 
   insertAtIndex(index: number, value: string, id: T["id"]) {
-    try {
-      const node = this.createNode(value, id);
-      this.setNode(id, node);
-
-      if (!this.head || index <= 0) {
-        node.next = this.head;
-        node.prev = null;
-        if (this.head) {
-          const oldHead = this.getNode(this.head);
-          if (oldHead) {
-            oldHead.prev = id;
-          }
-        }
-
-        this.head = id;
-        return { node };
-      }
-
-      const prevNode = this.findByIndex(index - 1);
-      node.next = prevNode.next;
-      prevNode.next = id;
-      node.prev = prevNode.id;
-
-      if (node.next) {
-        const nextNode = this.getNode(node.next);
-        if (nextNode) {
-          nextNode.prev = id;
-        }
-      }
-
-      return { node };
-    } catch (e) {
-      throw new Error(`InsertAtIndex failed: ${e}`);
+    if (index < 0) {
+      throw new Error(`Invalid negative index: ${index}`);
     }
-  }
 
-  insertById(node: T): void {
-    if (this.getNode(node.id)) return;
+    const node = this.createNode(value, id);
+    this.setNode(id, node);
 
-    if (!node.prev) {
+    if (!this.head || index <= 0) {
       node.next = this.head;
       node.prev = null;
-
       if (this.head) {
         const oldHead = this.getNode(this.head);
-        if (oldHead) {
-          oldHead.prev = node.id;
-        }
+        oldHead.prev = id;
       }
 
-      this.head = node.id;
-      this.setNode(node.id, node);
-      return;
+      this.head = id;
+      return { node };
     }
 
-    const prevNode = this.getNode(node.prev);
-    if (!prevNode) {
-      throw new Error(`Previous node not found: ${JSON.stringify(node.prev)}`);
-    }
-
+    const prevNode = this.findByIndex(index - 1);
     node.next = prevNode.next;
     node.prev = prevNode.id;
-    prevNode.next = node.id;
+    prevNode.next = id;
 
     if (node.next) {
       const nextNode = this.getNode(node.next);
-      if (nextNode) {
+      nextNode.prev = id;
+    }
+
+    return { node };
+  }
+
+  insertById(node: T): void {
+    if (this.nodeMap[JSON.stringify(node.id)]) return;
+
+    if (node.prev) {
+      const prevNode = this.getNode(node.prev);
+      node.next = prevNode.next;
+      prevNode.next = node.id;
+
+      if (node.next) {
+        const nextNode = this.getNode(node.next);
         nextNode.prev = node.id;
       }
+    } else {
+      node.next = this.head;
+      node.prev = null;
+      if (this.head) {
+        const oldHead = this.getNode(this.head);
+        oldHead.prev = node.id;
+      }
+      this.head = node.id;
     }
 
     this.setNode(node.id, node);
@@ -165,28 +145,32 @@ export abstract class LinkedList<T extends Node<NodeId>> {
 
   getNodesBetween(startIndex: number, endIndex: number): T[] {
     if (startIndex < 0 || endIndex < startIndex) {
-      throw new Error("Invalid indices");
+      throw new Error(`Invalid indices: startIndex=${startIndex}, endIndex=${endIndex}`);
     }
 
     const result: T[] = [];
     let currentNodeId = this.head;
     let currentIndex = 0;
 
+    const visitedNodes = new Set<string>();
+
     // 시작 인덱스까지 이동
-    while (currentNodeId !== null && currentIndex < startIndex) {
+    while (currentNodeId !== null && currentIndex < endIndex) {
+      if (visitedNodes.has(JSON.stringify(currentNodeId))) {
+        throw new Error("Circular reference detected.");
+      }
+      visitedNodes.add(JSON.stringify(currentNodeId));
+
       const currentNode = this.getNode(currentNodeId);
-      if (!currentNode) break;
+      if (currentIndex >= startIndex) {
+        result.push(currentNode);
+      }
       currentNodeId = currentNode.next;
       currentIndex += 1;
     }
 
-    // 시작 인덱스부터 끝 인덱스까지의 노드들 수집
-    while (currentNodeId !== null && currentIndex < endIndex) {
-      const currentNode = this.getNode(currentNodeId);
-      if (!currentNode) break;
-      result.push(currentNode);
-      currentNodeId = currentNode.next;
-      currentIndex += 1;
+    if (currentIndex < endIndex) {
+      throw new Error(`End index out of bounds: ${endIndex}`);
     }
 
     return result;
@@ -196,9 +180,15 @@ export abstract class LinkedList<T extends Node<NodeId>> {
     let currentNodeId = this.head;
     let result = "";
 
+    const visitedNodes = new Set<string>();
+
     while (currentNodeId !== null) {
+      if (visitedNodes.has(JSON.stringify(currentNodeId))) {
+        throw new Error("Circular reference detected.");
+      }
+      visitedNodes.add(JSON.stringify(currentNodeId));
+
       const currentNode = this.getNode(currentNodeId);
-      if (!currentNode) break;
       result += currentNode.value;
       currentNodeId = currentNode.next;
     }
@@ -209,10 +199,17 @@ export abstract class LinkedList<T extends Node<NodeId>> {
   spread(): T[] {
     let currentNodeId = this.head;
     const result: T[] = [];
+
+    const visitedNodes = new Set<string>();
+
     while (currentNodeId !== null) {
+      if (visitedNodes.has(JSON.stringify(currentNodeId))) {
+        throw new Error("Circular reference detected.");
+      }
+      visitedNodes.add(JSON.stringify(currentNodeId));
+
       const currentNode = this.getNode(currentNodeId);
-      if (!currentNode) break;
-      result.push(currentNode!);
+      result.push(currentNode);
       currentNodeId = currentNode.next;
     }
     return result;
@@ -244,10 +241,18 @@ export abstract class LinkedList<T extends Node<NodeId>> {
 
 export class BlockLinkedList extends LinkedList<Block> {
   updateAllOrderedListIndices() {
-    let currentNode = this.getNode(this.head);
+    let currentNodeId = this.head;
     let currentIndex = 1;
 
-    while (currentNode) {
+    const visitedNodes = new Set<string>();
+
+    while (currentNodeId) {
+      if (visitedNodes.has(JSON.stringify(currentNodeId))) {
+        throw new Error("Circular reference detected.");
+      }
+      visitedNodes.add(JSON.stringify(currentNodeId));
+
+      const currentNode = this.getNode(currentNodeId);
       if (currentNode.type === "ol") {
         const prevNode = currentNode.prev ? this.getNode(currentNode.prev) : null;
 
@@ -274,39 +279,36 @@ export class BlockLinkedList extends LinkedList<Block> {
             }
 
             if (prevSameIndentNode && prevSameIndentNode.type === "ol") {
-              currentIndex = prevSameIndentNode.listIndex! + 1;
+              currentIndex = (prevSameIndentNode.listIndex || 0) + 1;
             } else {
               currentIndex = 1;
             }
           }
         } else {
-          // 같은 indent의 연속된 ol인 경우 번호 증가
-          currentIndex = prevNode.listIndex!;
-          currentIndex += 1;
+          currentIndex = (prevNode.listIndex || 0) + 1;
         }
 
         currentNode.listIndex = currentIndex;
       }
 
-      currentNode = currentNode.next ? this.getNode(currentNode.next) : null;
+      currentNodeId = currentNode.next;
     }
   }
 
   reorderNodes({ targetId, beforeId, afterId }: ReorderNodesProps) {
     const targetNode = this.getNode(targetId);
-    if (!targetNode) return;
 
     // 1. 현재 위치에서 노드 제거
     if (targetNode.prev) {
       const prevNode = this.getNode(targetNode.prev);
-      if (prevNode) prevNode.next = targetNode.next;
+      prevNode.next = targetNode.next;
     } else {
       this.head = targetNode.next;
     }
 
     if (targetNode.next) {
       const nextNode = this.getNode(targetNode.next);
-      if (nextNode) nextNode.prev = targetNode.prev;
+      nextNode.prev = targetNode.prev;
     }
 
     if (this.head === targetId) {
@@ -314,6 +316,10 @@ export class BlockLinkedList extends LinkedList<Block> {
     }
 
     // 2. 새로운 위치에 노드 삽입
+    if (!beforeId && !afterId) {
+      throw new Error("Either beforeId or afterId must be provided.");
+    }
+
     if (!beforeId) {
       // 맨 앞으로 이동
       const oldHead = this.head;
@@ -323,7 +329,7 @@ export class BlockLinkedList extends LinkedList<Block> {
 
       if (oldHead) {
         const headNode = this.getNode(oldHead);
-        if (headNode) headNode.prev = targetId;
+        headNode.prev = targetId;
       }
     } else if (!afterId) {
       // 맨 끝으로 이동
