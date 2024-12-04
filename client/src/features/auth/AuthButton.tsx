@@ -3,8 +3,8 @@ import { TextButton } from "@components/button/textButton";
 import { Modal } from "@components/modal/modal";
 import { useModal } from "@components/modal/useModal";
 import { useCheckLogin } from "@stores/useUserStore";
-import { AuthModal } from "./AuthModal";
 import { container } from "./AuthButton.style";
+import { AuthModal } from "./AuthModal";
 
 export const AuthButton = () => {
   const isLogin = useCheckLogin();

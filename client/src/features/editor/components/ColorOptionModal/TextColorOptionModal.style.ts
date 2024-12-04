@@ -46,7 +46,7 @@ const colorVariants: ColorVariants = {
   yellow: { color: "#EEAF66" },
   purple: { color: "#9862CD" },
   brown: { color: "#985728" },
-  white: { color: "#EEEEEE" },
+  white: { color: "#FFFFFF" },
 };
 
 export const textColorIndicator = cva({
@@ -56,6 +56,7 @@ export const textColorIndicator = cva({
     alignItems: "center",
     width: "100%",
     height: "100%",
+    textShadow: "0.5px 0 black",
     fontSize: "16px",
     fontWeight: "bold",
   },

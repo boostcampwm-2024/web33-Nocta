@@ -16,6 +16,13 @@ export const title = css({
   textShadow: "0 2px 4px rgba(0,0,0,0.1)",
 });
 
+export const errorWrapper = css({
+  display: "flex",
+  justifyContent: "center",
+  width: "100%",
+  height: "20px",
+  paddingBottom: "40px",
+});
 export const toggleButton = css({
   marginBottom: "md",
   color: "white",
@@ -24,7 +31,13 @@ export const toggleButton = css({
     textDecoration: "underline",
   },
 });
-
+export const errorContainer = css({
+  display: "flex",
+  position: "relative",
+  alignContent: "center",
+  alignItems: "center",
+  color: "red",
+});
 export const formContainer = css({
   display: "flex",
   gap: "md",

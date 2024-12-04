@@ -6,6 +6,7 @@ export const formGroup = css({
 
 export const inputContainer = css({
   position: "relative",
+  border: "1px solid white",
   borderRadius: "md",
   padding: "1",
   background: "white/30",

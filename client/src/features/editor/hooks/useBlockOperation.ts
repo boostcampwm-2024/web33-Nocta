@@ -92,14 +92,14 @@ export const useBlockOperation = ({
             addedChar,
             block.id,
             pageId,
-            prevChar ? prevChar.style : [],
-            prevChar ? prevChar.color : undefined,
-            prevChar ? prevChar.backgroundColor : undefined,
+            prevChar?.style,
+            prevChar?.color,
+            prevChar?.backgroundColor,
           );
         } else {
           // 중간에 삽입
           const prevChar = editorCRDT.currentBlock?.crdt.LinkedList.findByIndex(
-            validCaretPosition - 1,
+            validCaretPosition === 1 ? 0 : validCaretPosition - 2,
           );
           const addedChar = newContent[validCaretPosition - 1];
           charNode = block.crdt.localInsert(

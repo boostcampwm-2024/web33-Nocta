@@ -217,22 +217,37 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
         const character = event.data;
         if (!character) return;
 
-        currentCharNode.value = character;
-        sendCharInsertOperation({
-          type: "charInsert",
-          node: currentCharNode,
-          blockId: block.id,
-          pageId,
+        // 문자열을 개별 문자로 분리
+        const characters = Array.from(character);
+        let currentPosition = currentCaret;
+
+        // 각 문자에 대해 처리
+        characters.forEach((char, index) => {
+          // 현재 위치의 노드 찾기
+          const charNode = block.crdt.LinkedList.findByIndex(currentPosition);
+          if (!charNode) return;
+
+          // 노드 값 설정 및 operation 전송
+          charNode.value = char;
+          sendCharInsertOperation({
+            type: "charInsert",
+            node: charNode,
+            blockId: block.id,
+            pageId,
+          });
+
+          // 다음 문자를 위한 새 노드 생성 (마지막 문자가 아닌 경우에만)
+          if (index < characters.length - 1) {
+            block.crdt.localInsert(currentPosition + 1, "", block.id, pageId);
+          }
+
+          currentPosition += 1;
         });
-        sendCharInsertOperation(block.crdt.localInsert(currentCaret + 1, "", block.id, pageId));
 
-        block.crdt.currentCaret = currentCaret;
+        block.crdt.currentCaret = currentCaret + characters.length;
       }
-
-      composingCaret.current = null;
-      if (isSameLocalChange.current) {
-        isSameLocalChange.current = false;
-      }
+      isLocalChange.current = false;
+      isSameLocalChange.current = false;
     },
     [editorCRDT, pageId, sendCharInsertOperation],
   );
@@ -248,21 +263,15 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     }
     if (isLocalChange.current || isSameLocalChange.current) {
       setCaretPosition({
-        blockId: editorCRDT.current.currentBlock.id,
+        blockId: editorCRDT.current.currentBlock!.id,
         linkedList: editorCRDT.current.LinkedList,
         position: editorCRDT.current.currentBlock?.crdt.currentCaret,
         pageId,
       });
       isLocalChange.current = false;
-      if (composingCaret.current !== null) {
-        isSameLocalChange.current = true;
-      } else {
-        isSameLocalChange.current = false;
-      }
-
+      isSameLocalChange.current = false;
       return;
     }
-    // 서윤님 피드백 반영
   }, [editorCRDT.current.currentBlock?.id.serialize()]);
 
   useEffect(() => {
