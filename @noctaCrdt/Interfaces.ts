@@ -77,14 +77,14 @@ export interface DeleteOperation {
   clock: number;
 }
 
-export interface RemotePageCreateOperation {
+export interface RemotePageCreateOperation extends BaseOperation {
   type: "pageCreate";
   clientId: number;
   workspaceId: string;
   page?: Page;
 }
 
-export interface RemotePageDeleteOperation {
+export interface RemotePageDeleteOperation extends BaseOperation {
   type: "pageDelete";
   clientId: number;
   workspaceId: string;
@@ -92,19 +92,19 @@ export interface RemotePageDeleteOperation {
   pageId: string;
 }
 
-export interface RemoteBlockUpdateOperation {
+export interface RemoteBlockUpdateOperation extends BaseOperation {
   type: "blockUpdate";
   node: Block;
   pageId: string;
 }
 
-export interface RemoteBlockInsertOperation {
+export interface RemoteBlockInsertOperation extends BaseOperation {
   type: "blockInsert";
   node: Block;
   pageId: string;
 }
 
-export interface RemoteCharInsertOperation {
+export interface RemoteCharInsertOperation extends BaseOperation {
   type: "charInsert";
   node: Char;
   blockId: BlockId;
@@ -114,21 +114,21 @@ export interface RemoteCharInsertOperation {
   backgroundColor?: BackgroundColorType;
 }
 
-export interface RemoteBlockDeleteOperation {
+export interface RemoteBlockDeleteOperation extends BaseOperation {
   type: "blockDelete";
   targetId: BlockId;
   clock: number;
   pageId: string;
 }
 
-export interface RemoteBlockCheckboxOperation {
+export interface RemoteBlockCheckboxOperation extends BaseOperation {
   type: "blockCheckbox";
   blockId: BlockId;
   isChecked: boolean;
   pageId: string;
 }
 
-export interface RemoteCharDeleteOperation {
+export interface RemoteCharDeleteOperation extends BaseOperation {
   type: "charDelete";
   targetId: CharId;
   clock: number;
@@ -136,14 +136,14 @@ export interface RemoteCharDeleteOperation {
   pageId: string;
 }
 
-export interface RemoteCharUpdateOperation {
+export interface RemoteCharUpdateOperation extends BaseOperation {
   type: "charUpdate";
   node: Char;
   blockId: BlockId;
   pageId: string;
 }
 
-export interface CursorPosition {
+export interface CursorPosition extends BaseOperation {
   type: "cursor";
   clientId: number;
   position: number;
@@ -183,7 +183,7 @@ export interface ReorderNodesProps {
   afterId: BlockId | null;
 }
 
-export interface RemotePageUpdateOperation {
+export interface RemotePageUpdateOperation extends BaseOperation {
   type: "pageUpdate";
   workspaceId: string;
   pageId: string;
@@ -197,7 +197,7 @@ export interface WorkSpaceSerializedProps {
   pageList: Page[];
   authUser: Map<string, string>;
 }
-export interface RemoteBlockReorderOperation {
+export interface RemoteBlockReorderOperation extends BaseOperation {
   type: "blockReorder";
   targetId: BlockId;
   beforeId: BlockId | null;
@@ -213,3 +213,27 @@ export interface WorkspaceListItem {
   memberCount: number;
   activeUsers: number;
 }
+
+// 서버 처리 시간과 수신 시간을 포함하는 기본 인터페이스
+interface BaseOperation {
+  serverProcessingTime?: number;
+  serverReceiveTime?: number;
+}
+
+export interface BatchOperationData extends BaseOperation {
+  batch: Operation[];
+}
+
+// Operation 유니온 타입 업데이트
+export type Operation =
+  | RemoteBlockInsertOperation
+  | RemoteBlockDeleteOperation
+  | RemoteBlockUpdateOperation
+  | RemoteBlockReorderOperation
+  | RemoteCharInsertOperation
+  | RemoteCharDeleteOperation
+  | RemoteCharUpdateOperation
+  | RemotePageCreateOperation
+  | RemotePageDeleteOperation
+  | RemotePageUpdateOperation
+  | RemoteBlockCheckboxOperation;

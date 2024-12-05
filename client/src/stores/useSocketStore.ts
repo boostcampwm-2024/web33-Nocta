@@ -53,6 +53,14 @@ class BatchProcessor {
   }
 }
 
+interface NetworkStats {
+  totalRTT: number;
+  operationCount: number;
+  totalServerProcessingTime: number;
+  totalOperationsPerBatch: number;
+  batchCount: number;
+}
+
 interface SocketStore {
   socket: Socket | null;
   clientId: number | null; // 숫자로 된 클라이언트Id
@@ -80,6 +88,8 @@ interface SocketStore {
   setWorkspace: (workspace: WorkSpaceSerializedProps) => void;
   sendOperation: (operation: any) => void;
   sendBlockCheckboxOperation: (operation: RemoteBlockCheckboxOperation) => void;
+  networkStats: NetworkStats;
+  logNetworkStats: () => void;
 }
 
 interface RemoteOperationHandlers {
@@ -100,7 +110,7 @@ interface PageOperationsHandlers {
   onRemotePageDelete: (operation: RemotePageDeleteOperation) => void;
   onRemotePageUpdate: (operation: RemotePageUpdateOperation) => void;
 }
-const test = false;
+
 export const useSocketStore = create<SocketStore>((set, get) => ({
   socket: null,
   clientId: null,
@@ -111,6 +121,31 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     const { socket } = get();
     socket?.emit("batch/operations", batch);
   }),
+
+  networkStats: {
+    totalRTT: 0,
+    operationCount: 0,
+    totalServerProcessingTime: 0,
+    totalOperationsPerBatch: 0,
+    batchCount: 0,
+  },
+
+  logNetworkStats: () => {
+    const stats = get().networkStats;
+    console.log("Network Statistics:");
+    console.log(`Total Operations: ${stats.operationCount}`);
+    console.log(`Total RTT: ${stats.totalRTT}ms`);
+    console.log(
+      `Average RTT: ${stats.operationCount > 0 ? stats.totalRTT / stats.operationCount : 0}ms`,
+    );
+    console.log(`Total Server Processing Time: ${stats.totalServerProcessingTime}ms`);
+    console.log(
+      `Average Server Processing Time: ${stats.operationCount > 0 ? stats.totalServerProcessingTime / stats.operationCount : 0}ms`,
+    );
+    console.log(
+      `Average Operations per Batch: ${stats.batchCount > 0 ? stats.totalOperationsPerBatch / stats.batchCount : 1}`,
+    );
+  },
 
   init: (userId: string | null, workspaceId: string | null) => {
     const { socket: existingSocket } = get();
@@ -166,14 +201,11 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       set({ socket });
     });
 
-    socket.on("disconnect", () => {
-      console.log("Disconnected from server");
-    });
+    socket.on("disconnect", () => {});
 
     socket.on("workspace/list", (workspaces: WorkspaceListItem[]) => {
       set({ availableWorkspaces: workspaces });
       const { availableWorkspaces } = get();
-      console.log(availableWorkspaces);
       const { workspace } = get();
       const currentWorkspace = availableWorkspaces.find((ws) => ws.id === workspace!.id);
       if (currentWorkspace) {
@@ -242,62 +274,45 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   },
 
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => {
-    if (test) {
-      const { socket } = get();
-      socket?.emit("insert/block", operation);
-    } else {
-      const { sendOperation } = get();
-      sendOperation(operation);
-    }
+    // const { socket } = get();
+    // socket?.emit("insert/block", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => {
-    if (test) {
-      const { socket } = get();
-      socket?.emit("insert/char", operation);
-    } else {
-      const { sendOperation } = get();
-      sendOperation(operation);
-    }
+    // const { socket } = get();
+    // socket?.emit("insert/char", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => {
-    if (test) {
-      const { socket } = get();
-      socket?.emit("update/block", operation);
-    } else {
-      const { sendOperation } = get();
-      sendOperation(operation);
-    }
+    // const { socket } = get();
+    // socket?.emit("update/block", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
+
   sendBlockDeleteOperation: (operation: RemoteBlockDeleteOperation) => {
-    if (test) {
-      const { socket } = get();
-      socket?.emit("delete/block", operation);
-    } else {
-      const { sendOperation } = get();
-      sendOperation(operation);
-    }
+    // const { socket } = get();
+    // socket?.emit("delete/block", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendCharDeleteOperation: (operation: RemoteCharDeleteOperation) => {
-    if (test) {
-      const { socket } = get();
-      socket?.emit("delete/char", operation);
-    } else {
-      const { sendOperation } = get();
-      sendOperation(operation);
-    }
+    // const { socket } = get();
+    // socket?.emit("delete/char", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendCharUpdateOperation: (operation: RemoteCharUpdateOperation) => {
-    if (test) {
-      const { socket } = get();
-      socket?.emit("update/char", operation);
-    } else {
-      const { sendOperation } = get();
-      sendOperation(operation);
-    }
+    // const { socket } = get();
+    // socket?.emit("update/char", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendCursorPosition: (position: CursorPosition) => {
@@ -306,13 +321,10 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   },
 
   sendBlockReorderOperation: (operation: RemoteBlockReorderOperation) => {
-    if (test) {
-      const { socket } = get();
-      socket?.emit("reorder/block", operation);
-    } else {
-      const { sendOperation } = get();
-      sendOperation(operation);
-    }
+    // const { socket } = get();
+    // socket?.emit("reorder/block", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendBlockCheckboxOperation: (operation: RemoteBlockCheckboxOperation) => {
@@ -324,16 +336,63 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     const { socket } = get();
     if (!socket) return;
 
-    socket.on("update/block", handlers.onRemoteBlockUpdate);
+    socket.removeAllListeners("insert/char");
+    socket.removeAllListeners("batch/operations");
+
     socket.on("insert/block", handlers.onRemoteBlockInsert);
+    socket.on("update/block", handlers.onRemoteBlockUpdate);
     socket.on("delete/block", handlers.onRemoteBlockDelete);
     socket.on("reorder/block", handlers.onRemoteBlockReorder);
-    socket.on("insert/char", handlers.onRemoteCharInsert);
+    // socket.on("insert/char", handlers.onRemoteCharInsert);
     socket.on("delete/char", handlers.onRemoteCharDelete);
     socket.on("update/char", handlers.onRemoteCharUpdate);
     socket.on("cursor", handlers.onRemoteCursor);
-    socket.on("batch/operations", handlers.onBatchOperations);
     socket.on("checkbox/block", handlers.onRemoteBlockCheckbox);
+
+    // 단일 연산 insert/block에 대한 처리
+    socket.on(
+      "insert/char",
+      (data: { operation: any; serverProcessingTime: number; serverReceiveTime: number }) => {
+        console.log("Hi!");
+        const receiveTime = Date.now();
+        const rtt = Math.abs(receiveTime - data.serverReceiveTime);
+
+        set((state) => ({
+          networkStats: {
+            totalRTT: state.networkStats.totalRTT + rtt,
+            operationCount: state.networkStats.operationCount + 1,
+            totalServerProcessingTime:
+              state.networkStats.totalServerProcessingTime + data.serverProcessingTime,
+            totalOperationsPerBatch: state.networkStats.totalOperationsPerBatch + 1,
+            batchCount: state.networkStats.batchCount + 1,
+          },
+        }));
+
+        handlers.onRemoteCharInsert(data as any);
+      },
+    );
+
+    // batch operations에 대한 처리는 하나만 등록
+    socket.on(
+      "batch/operations",
+      (data: { batch: any[]; serverProcessingTime: number; serverReceiveTime: number }) => {
+        const receiveTime = Date.now();
+        const rtt = Math.abs(receiveTime - data.serverReceiveTime);
+
+        set((state) => ({
+          networkStats: {
+            totalRTT: state.networkStats.totalRTT + rtt,
+            operationCount: state.networkStats.operationCount + data.batch.length,
+            totalServerProcessingTime:
+              state.networkStats.totalServerProcessingTime + data.serverProcessingTime,
+            totalOperationsPerBatch: state.networkStats.totalOperationsPerBatch + data.batch.length,
+            batchCount: state.networkStats.batchCount + 1,
+          },
+        }));
+
+        handlers.onBatchOperations(data.batch);
+      },
+    );
 
     return () => {
       socket.off("update/block", handlers.onRemoteBlockUpdate);
@@ -344,7 +403,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       socket.off("delete/char", handlers.onRemoteCharDelete);
       socket.off("update/char", handlers.onRemoteCharUpdate);
       socket.off("cursor", handlers.onRemoteCursor);
-      socket.off("batch/operations", handlers.onBatchOperations);
+      socket.off("batch/operations");
       socket.off("checkbox/block", handlers.onRemoteBlockCheckbox);
     };
   },

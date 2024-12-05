@@ -774,6 +774,8 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
     @ConnectedSocket() client: Socket,
     batch: boolean = false,
   ): Promise<void> {
+    const receiveTime = Date.now();
+    const start = process.hrtime();
     const clientInfo = this.clientMap.get(client.id);
     try {
       this.logger.debug(
@@ -792,6 +794,9 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       }
       currentBlock.crdt.remoteInsert(data);
 
+      const [seconds, nanoseconds] = process.hrtime(start);
+      const processingTime = seconds * 1000 + nanoseconds / 1000000;
+
       // server는 EditorCRDT 없습니다. - BlockCRDT 로 사용되고있음.
       const operation = {
         type: "charInsert",
@@ -801,6 +806,8 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         style: data.node.style || [],
         color: data.node.color ? data.node.color : "black",
         backgroundColor: data.node.backgroundColor ? data.node.backgroundColor : "transparent",
+        serverProcessingTime: processingTime,
+        serverReceiveTime: receiveTime,
       } as RemoteCharInsertOperation;
       this.emitOperation(client.id, data.pageId, "insert/char", operation, batch);
     } catch (error) {
@@ -941,6 +948,7 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
 
   @SubscribeMessage("batch/operations")
   async handleBatchOperations(@MessageBody() batch: any[], @ConnectedSocket() client: Socket) {
+    const receiveTime = Date.now();
     const start = process.hrtime();
 
     try {
@@ -950,9 +958,13 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       }
 
       this.logger.debug(`Batch 연산 수행중... - Client ID: ${clientInfo?.clientId}`);
+      // 각 연산별 처리 시간 측정
       for (const operation of batch) {
-        // 각 연산 처리 로직
+        const opStart = process.hrtime();
         await this.processOperation(operation, client);
+        const [opSeconds, opNanoseconds] = process.hrtime(opStart);
+        operation.serverProcessingTime = opSeconds * 1000 + opNanoseconds / 1000000;
+        operation.serverReceiveTime = receiveTime;
       }
       this.logger.debug(`Batch 연산 완료 - Client ID: ${clientInfo?.clientId}`);
 
@@ -960,13 +972,15 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       if (batch.length > 0) {
         this.executeBatch();
       }
+
+      const [seconds, nanoseconds] = process.hrtime(start);
+      const totalProcessingTime = seconds * 1000 + nanoseconds / 1000000;
+      this.logger.debug(`Batch 연산 완료 - Client ID: ${clientInfo?.clientId}`);
+      this.logger.log(`Batch operation took ${seconds}s ${nanoseconds / 1000000}ms`);
+      this.logger.log(`total processing time: ${totalProcessingTime}ms`);
+      this.logger.log(`Processed ${batch.length} operations`);
     } catch (error) {
       throw new WsException(`Batch 연산 실패: ${error.message}`);
-    } finally {
-      // 정보 모니터링
-      const [seconds, nanoseconds] = process.hrtime(start);
-      this.logger.log(`Batch operation took ${seconds}s ${nanoseconds / 1000000}ms`);
-      this.logger.log(`Processed ${batch.length} operations`);
     }
   }
 
@@ -992,8 +1006,15 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       for (const [room, batch] of batches) {
         if (batch.length > 0) {
           const [clientId, roomId] = room.split(":");
-          server.to(roomId).except(clientId).emit("batch/operations", batch);
-          this.batchMap.delete(room);
+          const batchData = {
+            batch: batch,
+            serverProcessingTime: batch.reduce(
+              (acc, op) => acc + op.operation.serverProcessingTime,
+              0,
+            ),
+            serverReceiveTime: Date.now(),
+          };
+          server.to(roomId).except(clientId).emit("batch/operations", batchData);
         }
       }
       this.batchMap.clear();

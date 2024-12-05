@@ -338,6 +338,14 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     handleRemoteCursor,
   ]);
 
+  useEffect(() => {
+    const statsInterval = setInterval(() => {
+      useSocketStore.getState().logNetworkStats();
+    }, 10000); // 10초마다 통계 출력
+
+    return () => clearInterval(statsInterval);
+  }, []);
+
   // 로딩 상태 체크
   if (!editorCRDT || !editorState) {
     return <div>Loading editor data...</div>;
