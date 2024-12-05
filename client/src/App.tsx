@@ -3,7 +3,9 @@ import { ErrorModal } from "@components/modal/ErrorModal";
 import { WorkSpace } from "@features/workSpace/WorkSpace";
 import { useErrorStore } from "@stores/useErrorStore";
 import { useUserInfo } from "@stores/useUserStore";
+import PerformanceComparison from "./babo";
 import { useSocketStore } from "./stores/useSocketStore";
+import PerformanceTest from "./test";
 
 const App = () => {
   // TODO 라우터, react query 설정
@@ -27,6 +29,8 @@ const App = () => {
     <>
       {isErrorModalOpen && <ErrorModal errorMessage={errorMessage} />}
       <WorkSpace />
+      <PerformanceTest />
+      <PerformanceComparison />
     </>
   );
 };
