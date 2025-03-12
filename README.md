@@ -190,8 +190,8 @@ LinkedList 기반으로 논리적 시계를 활용하여 각 문자들의 인덱
 - [CRDT를 구현해보자 (2): NestJS + MongoDB 연동하기](https://abrupt-feta-9a9.notion.site/CRDT-2-NestJS-MongoDB-d49eb9f56f1044e6aca39f74fb9d338f?pvs=4)
 - [CRDT를 구현해보자 (3): FE, BE에 CRDT 적용하기](https://abrupt-feta-9a9.notion.site/CRDT-3-FE-BE-CRDT-8da3ae01ddf349829ea4dc9639ba2f94?pvs=4)
 - [CRDT를 구현해보자 (4): DB 데이터 구조 정하기](https://abrupt-feta-9a9.notion.site/CRDT-4-DB-d2bd99a60e914816a7a1568ecf038445)
-- [CRDT 동시성 처리](https://abrupt-feta-9a9.notion.site/CRDT-a8872af52203493e9f1fcf7b43149f0d?pvs=4)
-- [CRDT 최적화하기](https://abrupt-feta-9a9.notion.site/CRDT-d96629bf4f3045209508e5f3f55d8f36?pvs=4)
+- [CRDT 문서를 MongoDB에 저장하기](https://abrupt-feta-9a9.notion.site/CRDT-MongoDB-fc4a57c24922471c8b712375dabc29dc)
+- [배치 처리를 통한 CRDT 통신 최적화하기](https://abrupt-feta-9a9.notion.site/CRDT-d96629bf4f3045209508e5f3f55d8f36)
 
 
 ### 캐럿 이동 문제
